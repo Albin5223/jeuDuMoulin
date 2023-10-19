@@ -1,25 +1,7 @@
 ### Configuration section
-
-# The versions of the compiler to test the project against.
-.build-matrix:
-  parallel:
-    # https://docs.gitlab.com/ee/ci/yaml/README.html#parallel-matrix-jobs
-    matrix:
-    # - OCAML_COMPILER: "4.00.1"
-    # - OCAML_COMPILER: "4.01.0"
-    # - OCAML_COMPILER: "4.02.1"
-    # - OCAML_COMPILER: "4.02.3"
-    # - OCAML_COMPILER: "4.03.0"
-    # - OCAML_COMPILER: "4.04.2"
-    # - OCAML_COMPILER: "4.05.0"
-    # - OCAML_COMPILER: "4.06.1"
-    # - OCAML_COMPILER: "4.07.1"
-    # - OCAML_COMPILER: "4.08.1"
-    # - OCAML_COMPILER: "4.09.1"
-    # - OCAML_COMPILER: "4.10.0"
-    - OCAML_COMPILER: "4.11.1"
-
 variables:
+  OCAML_COMPILER: "4.11.1"
+
   CLEAN_OPAM_CACHE: "false"
   CLEAN_DUNE_CACHE: "false"
   # If CLEAN_OPAM_CACHE is set to "true", the opam switch from previous CI jobs
@@ -91,8 +73,6 @@ stages:
 build:
   stage: build
 
-  extends: .build-matrix # defines OCAML_COMPILER
-
   variables:
     ARTIFACTS: "artifacts/$OCAML_COMPILER"
     # a local shortcut for the per-compiler artifact repository
@@ -106,14 +86,7 @@ build:
     paths:
       - artifacts/$OCAML_COMPILER
 
-  # run this job only if a 'dune-project' file exists;
-  # (In particular, this will not run in your "pages" branch
-  # if it does not itself use Dune.)
-  rules:
-    # https://docs.gitlab.com/ee/ci/yaml/#rules
-    - exists:
-        - dune-project
-
+ 
   # This CI script uses a local switch, so we don't need
   # a docker image with a pre-installed OCaml version, just opam.
   # See https://hub.docker.com/r/ocaml/opam/ for other images.
