@@ -1,2 +1,3 @@
 (test
- (name mill))
+ (name mill)
+ (libraries alcotest qcheck qcheck-alcotest))
