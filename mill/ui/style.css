@@ -1,0 +1,18 @@
+.board td {
+  text-align: center;
+  border: 1px solid;
+  width:100px;
+}
+
+td.red {
+    background-color: red;
+}
+
+td.green {
+    background-color: green;
+}
+
+.board tr {
+    height:100px;
+}
+
