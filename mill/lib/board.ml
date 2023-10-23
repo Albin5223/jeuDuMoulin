@@ -1,24 +1,43 @@
+let board_size = 7
+
+(** Defines the two type of piece, Black pieces and White pieces *)
 type color = Black | White
 
+(**
+  Will be used in the type : square.
+  Example : If a piece wants to move down, but the box below do not contain a "Path of V" (V for vertical), it means that it can't go down.   
+*)
 type direction = H | V
 
+(** Coordinates *)
 type coordonnee = int*int
 
+(** The grid squares, stored in our type board *)
 type square =
   | Empty
   | Path of direction
   | Wall
   | Color of color
 
+(** This will represent the game's board *)
 type board = square list list
-type reponse = board * bool
-type directionDeplacement = 
-  |UP
-  |Down
-  |Right
-  |Left
 
-let printSquare s = 
+(** Will be returned after a move, and will let us know if the move was legit or not *)
+type reponse = board * bool
+
+(** This type will be used when moving a piece to a certain direction *)
+type directionDeplacement = 
+  | Up
+  | Down
+  | Right
+  | Left
+  | Up_right
+  | Up_left
+  | Down_right
+  | Down_left
+
+(** Function that print a board square *)
+let printSquare (s : square) = 
   match s with
   | Color(White) -> Format.printf "{W}"
   | Color(Black) -> Format.printf "{B}"
@@ -28,45 +47,22 @@ let printSquare s =
   |_ -> Format.printf "  "
 
 
-let miseEnPlace liste i couleur =
-  let rec aux liste i couleur acc trouve = 
-    match liste with 
-    |[] -> (acc,trouve)
-    |x::xl -> if i = 0 && x = Empty 
-      then aux xl (i-1) couleur (acc@[Color(couleur)]) true 
-      else aux xl (i-1) couleur (acc@[x]) trouve 
-    in aux liste i couleur [] false
-
-
-let reconstitution max (list:square list) :board =
-  let rec aux max list i acc sublist =
-    match list with
-    |[] -> (acc@[sublist])
-    |x::xl -> if i = max
-              then aux max xl 1 (acc@[sublist]) [x]
-              else aux max xl (i+1) acc (sublist@[x])
-    in aux max list 0 [] []
-
-
-let positionner (board :board)((i,j):coordonnee)(joueur:color) :board = 
-  let (subBoard,find) = miseEnPlace (List.flatten board) (i*7+j) joueur in
-  if find then reconstitution 7 subBoard else board
-
+(** This function remove a piece from the board and returns it *)
 let rec supprimer liste i joueur =
   match liste with 
   |[] -> []
   |x::xl -> if i = 0 && x = Color(joueur) then [Empty]@supprimer xl (i-1) joueur else [x]@supprimer xl (i-1) joueur
  
 
-(*Utilises le type option pour verifier que tout fonctionne bien*)
+(** This function moves a piece with a direction *)
 let deplacer (board :board)((i1,j1):coordonnee) ((i2,j2):coordonnee) (joueur:color) :board = 
-  let subBoard = supprimer (List.flatten board) (i1*7+j1) joueur in 
-  let (subBoard,find) = miseEnPlace subBoard (i2*7+j2) joueur  
-  in if find then reconstitution 7 subBoard else board  
+  board
 
 
-
+(** Print the board in the shell *)
 let prettyPrintBoard (b : board) = List.iter (fun l -> List.iter (printSquare) l; Format.printf "@.") b
+
+(** Init a start board *)
 let initBoard =  
   [[Empty;Path(H);Path(H);Empty;Path(H);Path(H);Empty];
 [Path(V);Empty;Path(H);Empty;Path(H);Empty;Path(V)];
