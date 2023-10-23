@@ -11,6 +11,12 @@ type square =
   | Color of color
 
 type board = square list list
+type reponse = board * bool
+type directionDeplacement = 
+  |UP
+  |Down
+  |Right
+  |Left
 
 let printSquare s = 
   match s with
@@ -71,8 +77,13 @@ let initBoard =
 [Empty;Path(H);Path(H);Empty;Path(H);Path(H);Empty]]
 
 
-
-
+(*Fonction qui permet de vérifier en fonction d'une position qu'il y a bien un moulin*)
+(*Rajouter une fonction qui déplace un pion d'une seule case en fonction de la direction donnée*)
+(*Rajoouter une fonction qui en fonction d'une position renvoie la liste des mouvements possibles*)
+(*Faire une IA qui joue au pif*)
+(*Un bot qui repère une position qui empeche un moulin de l'adversaire*)
+(*Faire le changement de phase entre il peut placer où il veut et ensuite deplacer de case en case*)
+(*Faire des tests pour verifier les possibles erreurs*)
 
 
 
