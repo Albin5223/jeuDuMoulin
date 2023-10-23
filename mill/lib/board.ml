@@ -1,3 +1,4 @@
+(** This represent the size of the board *)
 let board_size = 7
 
 (** Defines the two type of piece, Black pieces and White pieces *)
@@ -31,10 +32,8 @@ type directionDeplacement =
   | Down
   | Right
   | Left
-  | Up_right
-  | Up_left
-  | Down_right
-  | Down_left
+  | Diagonal_right
+  | Diagonal_left
 
 (** Function that print a board square *)
 let printSquare (s : square) = 
@@ -46,28 +45,23 @@ let printSquare (s : square) =
   | Path(V) -> Format.printf " | "
   |_ -> Format.printf "  "
 
+(** A map that apply the function "f" to the square at the coordinate (i,j) of the board *)
+let boardMap (f:square -> square) (board:board) ((i,j):coordonnee) =
+  List.mapi (fun x line -> if x = i then (List.mapi (fun y el -> if y = j then f el else el) line) else line) board
 
-
-let boardMap (f:square -> square) (board :board)((i,j):coordonnee)(joueur:color) :board = 
-  let rec parcoursRow board (i,j) joueur finalBoard =
-    match (board,i) with
-    |([],_) -> finalBoard
-    |(x::xs,0) -> let rec parcoursLine (ligne:square list) (j:int) joueur=
-                    match (ligne,j) with
-                    |([],_) -> []
-                    |(x::ys,0) -> let square = f x in [square]@parcoursLine ys (j-1) joueur
-                    |(y::ys,b) -> [y]@parcoursLine ys (b-1) joueur
-                  in parcoursRow xs (i-1,j) joueur (finalBoard@[(parcoursLine x j joueur)]) 
-    |(x::xs,a) -> parcoursRow xs (a-1,j) joueur (finalBoard@[x])
-  in parcoursRow board (i,j) joueur []
-
+(**
+  Function that put a piece on the board at the coordinate (i,j) and return the new board
+  If the position is not legit for a piece, return the old board
+*)
 let positionner board (i,j) joueur :board = 
-  boardMap (fun x -> if x = Empty then Color(joueur) else x) board (i,j) joueur
+  boardMap (fun x -> if x = Empty then Color(joueur) else x) board (i,j)
 
-
-(** This function remove a piece from the board and returns it *)
+(**
+  This function remove a piece from the board and returns it
+  Return an unchanged board if there is no piece in (i,j)
+*)
 let supprimer board (i,j) joueur =
-  boardMap (fun x -> if x = Color(joueur) then Empty else x) board (i,j) joueur
+  boardMap (fun x -> if x = Color(joueur) then Empty else x) board (i,j)
 
 (** This function moves a piece with a direction *)
 let deplacer (board :board)((i1,j1):coordonnee) ((i2,j2):coordonnee) (joueur:color) :board = 
@@ -76,8 +70,6 @@ let deplacer (board :board)((i1,j1):coordonnee) ((i2,j2):coordonnee) (joueur:col
   if arrive = Empty && depart =Color(joueur)
   then let sub = supprimer board (i1,j1) joueur in positionner sub (i2,j2) joueur
   else board
-
-
 
 (** Print the board in the shell *)
 let prettyPrintBoard (b : board) = List.iter (fun l -> List.iter (printSquare) l; Format.printf "@.") b
