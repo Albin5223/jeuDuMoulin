@@ -10,6 +10,14 @@ type square =
   | Wall
   | Color of color
 
+type board = square list list
+type reponse = board * bool
+type directionDeplacement = 
+  |UP
+  |Down
+  |Right
+  |Left
+
 let printSquare s = 
   match s with
   | Color(White) -> Format.printf "{W}"
@@ -20,13 +28,17 @@ let printSquare s =
   |_ -> Format.printf "  "
 
 
-let rec miseEnPlace liste i couleur trouve=
-  match liste with 
-  |[] -> []
-  |x::xl -> if i = 0 && x = Empty then [Color(couleur)]@miseEnPlace xl (i-1) couleur true else [x]@miseEnPlace xl (i-1) couleur trouve
+let miseEnPlace liste i couleur =
+  let rec aux liste i couleur acc trouve = 
+    match liste with 
+    |[] -> (acc,trouve)
+    |x::xl -> if i = 0 && x = Empty 
+      then aux xl (i-1) couleur (acc@[Color(couleur)]) true 
+      else aux xl (i-1) couleur (acc@[x]) trouve 
+    in aux liste i couleur [] false
 
 
-let reconstitution max (list:square list) :square list list =
+let reconstitution max (list:square list) :board =
   let rec aux max list i acc sublist =
     match list with
     |[] -> (acc@[sublist])
@@ -34,21 +46,27 @@ let reconstitution max (list:square list) :square list list =
               then aux max xl 1 (acc@[sublist]) [x]
               else aux max xl (i+1) acc (sublist@[x])
     in aux max list 0 [] []
-  
-let positionner (board :square list list)((i,j):coordonnee)(joueur:color) :square list list = 
-  let subBoard = miseEnPlace (List.flatten board) (i*7+j) joueur false in
-  
-  reconstitution 7 subBoard 
 
-let supprimer list i joueur= [[]]
+
+let positionner (board :board)((i,j):coordonnee)(joueur:color) :board = 
+  let (subBoard,find) = miseEnPlace (List.flatten board) (i*7+j) joueur in
+  if find then reconstitution 7 subBoard else board
+
+let rec supprimer liste i joueur =
+  match liste with 
+  |[] -> []
+  |x::xl -> if i = 0 && x = Color(joueur) then [Empty]@supprimer xl (i-1) joueur else [x]@supprimer xl (i-1) joueur
+ 
 
 (*Utilises le type option pour verifier que tout fonctionne bien*)
-let deplacer (board :square list list)((i1,j1):coordonnee) ((i2,j2):coordonnee) (joueur:color) :square list list = 
-  let subBoard = supprimer (List.flatten board) (i1*7+j1) joueur in positionner subBoard (i2,j2) joueur 
+let deplacer (board :board)((i1,j1):coordonnee) ((i2,j2):coordonnee) (joueur:color) :board = 
+  let subBoard = supprimer (List.flatten board) (i1*7+j1) joueur in 
+  let (subBoard,find) = miseEnPlace subBoard (i2*7+j2) joueur  
+  in if find then reconstitution 7 subBoard else board  
 
 
 
-let prettyPrintBoard (b : square list list) = List.iter (fun l -> List.iter (printSquare) l; Format.printf "@.") b
+let prettyPrintBoard (b : board) = List.iter (fun l -> List.iter (printSquare) l; Format.printf "@.") b
 let initBoard =  
   [[Empty;Path(H);Path(H);Empty;Path(H);Path(H);Empty];
 [Path(V);Empty;Path(H);Empty;Path(H);Empty;Path(V)];
@@ -58,14 +76,14 @@ let initBoard =
 [Path(V);Empty;Path(H);Empty;Path(H);Empty;Path(V)];
 [Empty;Path(H);Path(H);Empty;Path(H);Path(H);Empty]]
 
-let board = initBoard
-let () = prettyPrintBoard board
 
-let board = positionner board (0,3) White 
-let board = positionner board (0,0) Black 
-let () = prettyPrintBoard board
-
-
+(*Fonction qui permet de vérifier en fonction d'une position qu'il y a bien un moulin*)
+(*Rajouter une fonction qui déplace un pion d'une seule case en fonction de la direction donnée*)
+(*Rajoouter une fonction qui en fonction d'une position renvoie la liste des mouvements possibles*)
+(*Faire une IA qui joue au pif*)
+(*Un bot qui repère une position qui empeche un moulin de l'adversaire*)
+(*Faire le changement de phase entre il peut placer où il veut et ensuite deplacer de case en case*)
+(*Faire des tests pour verifier les possibles erreurs*)
 
 
 
