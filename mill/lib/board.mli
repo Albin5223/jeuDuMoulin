@@ -1,6 +1,6 @@
 val board_size : int
 type color = Black | White
-type direction = H | V
+type direction = H | V | DR | DL
 type coordonnee = int * int
 type square = Empty | Path of direction | Wall | Color of color
 type board = square list list
@@ -15,9 +15,11 @@ type directionDeplacement =
   | Down_right
   | Down_left
 val printSquare : square -> unit
-val boardMap : (square -> square) -> board -> coordonnee -> color -> board
-val positionner : board -> int * int -> color -> board
-val supprimer : board -> int * int -> color -> board
+val boardMap : (square -> square) -> board -> coordonnee -> square list list
+val placePiece : board -> int * int -> color -> board
+val remove : board -> int * int -> color -> square list list
 val deplacer : board -> coordonnee -> coordonnee -> color -> board
 val prettyPrintBoard : board -> unit
 val initBoard : square list list
+val moveToDirection :
+  board -> coordonnee -> directionDeplacement -> color -> board
