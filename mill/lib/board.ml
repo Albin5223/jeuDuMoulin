@@ -61,16 +61,9 @@ let getColumn (board:board) (j:int) :square list=
     |x::xs -> aux xs j [(List.nth x j)]@acc
   in aux board j []
 
-let checkMillFromList subBoard (joueur:color) : int=
-  let rec aux subBoard count = 
-    if count = 3 || count <0 then count
-    else 
-      match subBoard with 
-      |[] -> count
-      |Color(j) :: xs when j = joueur -> aux xs (count+1)
-      |Wall::xs -> aux xs (-1)
-      |_::xs -> aux xs count
-    in aux subBoard 0
+let checkMillFromList subBoard (joueur:color) : int =
+  List.fold_right (fun a b -> if a = Color(joueur) then b+1 else if a = Wall then 0 else b) subBoard 0
+  
 
 (**Function that check if there is a mill from a certain position(i,j)**)
 let checkMillFromPosition (board:board) ((i,j):coordonnee) joueur:bool = 

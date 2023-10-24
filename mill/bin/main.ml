@@ -30,7 +30,7 @@ let () = prettyPrintBoard b
 
 
 ;;print_endline "Test presence d'un moulin";;
-let (b,_) = placePiece b (5,3) Black
+let (b,_) = placePiece b (2,3) Black
 let (b,_) = placePiece b (4,3) Black
 let (b,rep) = placePiece b (6,3) Black
 
