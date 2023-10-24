@@ -55,20 +55,32 @@ let getRow (board:board) (i:int) :square list =
   List.nth board i
 
 let getColumn (board:board) (j:int) :square list=
-  let rec aux board j acc =
+  let rec aux board j  =
     match board with 
-    |[] -> acc
-    |x::xs -> aux xs j [(List.nth x j)]@acc
-  in aux board j []
+    |[] -> []
+    |x::xs -> [(List.nth x j)] @aux xs j 
+  in aux board j
 
 let checkMillFromList subBoard (joueur:color) : int =
   List.fold_right (fun a b -> if a = Color(joueur) then b+1 else if a = Wall then 0 else b) subBoard 0
-  
+
+let checkMillInMid subBoard j joueur = 
+  let rec aux subBoard distance count=
+    match subBoard with 
+    |[] -> count
+    |Wall::_ when distance = 0-> count
+    |x::xs when distance = 0 -> if x = Color(joueur) then aux xs distance (count+1) else aux xs distance count
+    |_::xs -> aux xs (distance-1) count
+  in if j<board_size/2 then aux subBoard 0 0 else aux subBoard 4 0
+
 
 (**Function that check if there is a mill from a certain position(i,j)**)
+  (*A FINIIIIR*)
 let checkMillFromPosition (board:board) ((i,j):coordonnee) joueur:bool = 
-  (checkMillFromList (getRow board i) joueur = 3) || 
-  (checkMillFromList (getColumn board j) joueur = 3)
+  match i,j with 
+  |(3,_) -> (checkMillFromList (getColumn board j) joueur = 3) || (checkMillInMid (getRow board i) j joueur = 3)
+  |(_,3) -> (checkMillFromList (getRow board i) joueur = 3) || (checkMillInMid (getColumn board j) i joueur = 3)
+  |_ ->(checkMillFromList (getRow board i) joueur = 3) || (checkMillFromList (getColumn board j) joueur = 3)
 
 (** A map that apply the function "f" to the square at the coordinate (i,j) of the board *)
 let boardMap (f:square -> square) (board:board) ((i,j):coordonnee) =

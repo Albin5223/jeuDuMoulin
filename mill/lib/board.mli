@@ -19,6 +19,7 @@ val getSquare : 'a list list -> int * int -> 'a
 val getRow : board -> int -> square list
 val getColumn : board -> int -> square list
 val checkMillFromList : square list -> color -> int
+val checkMillInMid : square list -> int -> color -> int
 val checkMillFromPosition : board -> coordonnee -> color -> bool
 val boardMap : (square -> square) -> board -> coordonnee -> square list list
 val placePiece : board -> int * int -> color -> reponse
