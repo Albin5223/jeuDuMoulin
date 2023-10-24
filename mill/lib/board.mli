@@ -15,11 +15,16 @@ type directionDeplacement =
   | Down_right
   | Down_left
 val printSquare : square -> unit
+val getSquare : 'a list list -> int * int -> 'a
+val getRow : board -> int -> square list
+val getColumn : board -> int -> square list
+val checkMillFromList : square list -> color -> int
+val checkMillFromPosition : board -> coordonnee -> color -> bool
 val boardMap : (square -> square) -> board -> coordonnee -> square list list
-val placePiece : board -> int * int -> color -> board
+val placePiece : board -> int * int -> color -> reponse
 val remove : board -> int * int -> color -> square list list
-val deplacer : board -> coordonnee -> coordonnee -> color -> board
+val deplacer : board -> coordonnee -> coordonnee -> color -> reponse
 val prettyPrintBoard : board -> unit
 val initBoard : square list list
 val moveToDirection :
-  board -> coordonnee -> directionDeplacement -> color -> board
+  board -> coordonnee -> directionDeplacement -> color -> reponse
