@@ -11,7 +11,7 @@ type square =
   | Color of color
 
 type board = square list list
-type reponse = board * bool
+
 type directionDeplacement = 
   |UP
   |Down
@@ -25,7 +25,7 @@ let printSquare s =
   | Empty -> Format.printf "{ }"
   | Path(H) -> Format.printf "---"
   | Path(V) -> Format.printf " | "
-  |_ -> Format.printf "  "
+  |_ -> Format.printf "   "
 
 
 let miseEnPlace liste i couleur =
@@ -66,15 +66,34 @@ let deplacer (board :board)((i1,j1):coordonnee) ((i2,j2):coordonnee) (joueur:col
 
 
 
-let prettyPrintBoard (b : board) = List.iter (fun l -> List.iter (printSquare) l; Format.printf "@.") b
-let initBoard =  
+let prettyPrintBoard (b : board) = (List.iter (fun l -> List.iter (printSquare) l; Format.printf "@.") b) ; print_endline ""
+
+let initBoard = 
+
+  let rec aux x =
+    let rec aux2 i j =
+      match (i,j) with
+      |(7,_)|(_,7)->[]
+      |(3,3)->[Wall]@(aux2 i (j+1))
+      |(3,_)|(_,3) -> [Empty]@(aux2 i (j+1))
+      |(a,b) when (a = b || (a+b) = 6) ->[Empty]@(aux2 i (j+1))
+      |(0,_)|(6,_)|(_,2)|(_,4)-> [Path(H)]@(aux2 i (j+1))
+      |_-> [Path(V)]@(aux2 i (j+1))
+ 
+      in
+    if x < 7 then (aux2 x 0)::(aux (x+1)) else []  
+  in 
+  aux 0
+
+
+    (*
   [[Empty;Path(H);Path(H);Empty;Path(H);Path(H);Empty];
 [Path(V);Empty;Path(H);Empty;Path(H);Empty;Path(V)];
 [Path(V);Path(V);Empty;Empty;Empty;Path(V);Path(V)];
 [Empty;Empty;Empty;Wall;Empty;Empty;Empty];
 [Path(V);Path(V);Empty;Empty;Empty;Path(V);Path(V)];
 [Path(V);Empty;Path(H);Empty;Path(H);Empty;Path(V)];
-[Empty;Path(H);Path(H);Empty;Path(H);Path(H);Empty]]
+[Empty;Path(H);Path(H);Empty;Path(H);Path(H);Empty]]*)
 
 
 (*Fonction qui permet de vérifier en fonction d'une position qu'il y a bien un moulin*)

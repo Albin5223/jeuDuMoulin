@@ -18,10 +18,10 @@ let printSquare s =
   | Color(Black) -> Format.printf "Black,"
   | Empty -> Format.printf "_,"
 
-let printPlayer p = Format.printf "%d," p.men; printColor p.col
+(*let printPlayer p = Format.printf "%d," p.men; printColor p.col
 
 let printBoard (b : square list list) = List.iter (fun l -> List.iter (printSquare) l; Format.printf "@.") b
 
 let player1 = {col=Black;men=9};;
 printPlayer player1;;
-printBoard board
+printBoard board*)
