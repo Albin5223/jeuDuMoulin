@@ -1,8 +1,19 @@
 (** This represent the size of the board **)
 let board_size = 7
+let current_phase = 1
+(*
+Phase 1 : Placing pieces
+Phase 2 : Moving pieces
+Phase 3 : "Flying"
+*)
 
 (** Defines the two type of piece, Black pieces and White pieces *)
 type color = Black | White
+
+let reverseColor (c : color) : color =
+  match c with
+  | Black -> White
+  | White -> Black
 
 (**
   Will be used in the type : square.
@@ -11,7 +22,7 @@ type color = Black | White
 type direction = H | V | DR | DL
 
 (** Coordinates *)
-type coordonnee = int*int
+type coordinates = int*int
 
 (** The grid squares, stored in our type board *)
 type square =
@@ -23,7 +34,9 @@ type square =
 (** This will represent the game's board *)
 type board = square list list
 
-(** Will be returned after a move, and will let us know if the move produce a mill or not *)
+type gameUpdate = {board : board; mill : bool; player1 : player; player2 : player; gameIsChanged : bool}
+
+(** Will be returned after a move, and will let us know if the move was legit or not *)
 type reponse = board * bool
 
 (** This type will be used when moving a piece to a certain direction *)
@@ -75,47 +88,47 @@ let checkMillInMid subBoard j joueur =
     match subBoard with 
     |[] -> count
     |Wall::_ when distance = 0-> count
-    |x::xs when distance = 0 -> if x = Color(joueur) then aux xs distance (count+1) else aux xs distance count
+    |x::xs when distance = 0 -> if x = Color(player) then aux xs distance (count+1) else aux xs distance count
     |_::xs -> aux xs (distance-1) count
   in if j<board_size/2 then aux subBoard 0 0 else aux subBoard 4 0
 
 
 (**Function that check if there is a mill from a certain position(i,j)**)
   (*A FINIIIIR*)
-let checkMillFromPosition (board:board) ((i,j):coordonnee) joueur:bool = 
+let checkMillFromPosition (board:board) ((i,j):coordinates) player:bool = 
   match i,j with 
-  |(3,_) -> (checkMillFromList (getColumn board j) joueur = 3) || (checkMillInMid (getRow board i) j joueur = 3)
-  |(_,3) -> (checkMillFromList (getRow board i) joueur = 3) || (checkMillInMid (getColumn board j) i joueur = 3)
-  |_ ->(checkMillFromList (getRow board i) joueur = 3) || (checkMillFromList (getColumn board j) joueur = 3)
+  |(3,_) -> (checkMillFromList (getColumn board j) player = 3) || (checkMillInMid (getRow board i) j player = 3)
+  |(_,3) -> (checkMillFromList (getRow board i) player = 3) || (checkMillInMid (getColumn board j) i player = 3)
+  |_ ->(checkMillFromList (getRow board i) player = 3) || (checkMillFromList (getColumn board j) player = 3)
 
 (** A map that apply the function "f" to the square at the coordinate (i,j) of the board *)
-let boardMap (f:square -> square) (board:board) ((i,j):coordonnee) =
+let boardMap (f:square -> square) (board:board) ((i,j):coordinates) =
   List.mapi (fun x line -> if x = i then (List.mapi (fun y el -> if y = j then f el else el) line) else line) board
 
 (**
   Function that put a piece on the board at the coordinate (i,j) and return the new board
   If the position is not legit for a piece, return the old board
 *)
-let placePiece board (i,j) joueur :reponse = 
-  let board = boardMap (fun x -> if x = Empty then Color(joueur) else x) board (i,j) 
-in let check = checkMillFromPosition board (i,j) joueur in (board,check)
+let placePiece board (i,j) player : reponse = 
+  let board = boardMap (fun x -> if x = Empty then Color(player) else x) board (i,j) 
+in let check = checkMillFromPosition board (i,j) player in (board,check)
 
 (**
   This function remove a piece from the board and returns it
   Return an unchanged board if there is no piece in (i,j)
 *)
-let remove board (i,j) joueur =
-  boardMap (fun x -> if x = Color(joueur) then Empty else x) board (i,j)
+let remove board (i,j) player : board =
+  boardMap (fun x -> if x = Color(player) then Empty else x) board (i,j)
 
 (**
   This function moves a piece from (i1,j1) to (i2,j2)
   Return the changed board if the move is legal, else, return the unchanged board
 *)
-let deplacer (board :board)((i1,j1):coordonnee) ((i2,j2):coordonnee) (joueur:color) :reponse = 
+let move (board :board)((i1,j1):coordinates) ((i2,j2):coordinates) (player:color) :reponse = 
   let arrive = List.nth (List.nth board i2) j2 in
   let depart = List.nth (List.nth board i1) j1 in
-  if arrive = Empty && depart = Color(joueur)
-  then let sub = remove board (i1,j1) joueur in placePiece sub (i2,j2) joueur
+  if arrive = Empty && depart = Color(player)
+  then let sub = remove board (i1,j1) player in placePiece sub (i2,j2) player
   else (board,false)
 
 (** Print the board in the shell *)
