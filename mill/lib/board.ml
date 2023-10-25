@@ -141,6 +141,20 @@ let moveToDirection (b : board) ((i,j) : coordonnee) (d : directionDeplacement) 
     | Down_left -> let case = List.nth (List.nth b (x+1)) (y-1) in if case = Path DR then goTo b (x+1,y-1) d joueur else (if case = Empty then deplacer b (i,j) (x+1,y-1) joueur else (b,false))
   in goTo b (i,j) d joueur
 
+
+
+let possibleMoves (board : board) ((i,j) : coordonnee) (joueur : color) (diagonal : bool): directionDeplacement list = 
+  let aux (board : board) ((i,j) : coordonnee) (dir : directionDeplacement) : directionDeplacement list =
+    if i >= board_size || i < 0 || j >= board_size || j < 0 then []
+    else if List.nth (List.nth board i) j = Empty then [dir] else []
+  in
+  if (List.nth (List.nth board i) j) != Color(joueur) then []
+  else
+    let normalMoves = (aux board (i+1,j) Right)@(aux board (i-1,j) Left)@(aux board (i,j-1) Up)@(aux board (i,j+1) Down);
+    if diagonal then normalMoves@(aux board (i+1,j+1) Diagonal(Right,Down))@(aux board (i+1,j-1) Diagonal(Right,Up))@(aux board (i-1,j+1) Diagonal(Left,Down))@(aux board (i-1,j-1) Diagonal(Left,Up))
+    else normalMoves
+
+
 (*Rajouter une fonction qui en fonction d'une position renvoie la liste des mouvements possibles*)
 (*Faire une IA qui joue au pif*)
 (*Un bot qui repère une position qui empeche un moulin de l'adversaire*)
