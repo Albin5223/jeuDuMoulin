@@ -1,3 +1,5 @@
+open Type
+
 (** This represent the size of the board **)
 let board_size = 7
 let current_phase = 1
@@ -6,49 +8,6 @@ Phase 1 : Placing pieces
 Phase 2 : Moving pieces
 Phase 3 : "Flying"
 *)
-
-(** Defines the two type of piece, Black pieces and White pieces *)
-type color = Black | White
-
-let reverseColor (c : color) : color =
-  match c with
-  | Black -> White
-  | White -> Black
-
-(**
-  Will be used in the type : square.
-  Example : If a piece wants to move down, but the box below do not contain a "Path of V" (V for vertical), it means that it can't go down.   
-*)
-type direction = H | V | DR | DL
-
-(** Coordinates *)
-type coordinates = int*int
-
-(** The grid squares, stored in our type board *)
-type square =
-  | Empty
-  | Path of direction
-  | Wall
-  | Color of color
-
-(** This will represent the game's board *)
-type board = square list list
-
-type gameUpdate = {board : board; mill : bool; player1 : player; player2 : player; gameIsChanged : bool}
-
-(** Will be returned after a move, and will let us know if the move was legit or not *)
-type reponse = board * bool
-
-(** This type will be used when moving a piece to a certain direction *)
-type directionDeplacement = 
-  | Up
-  | Down
-  | Right
-  | Left
-  | Up_right
-  | Up_left
-  | Down_right
-  | Down_left
 
 (** Function that print a board square *)
 let printSquare (s : square) = 
@@ -80,10 +39,10 @@ let getRow (board:board) (i:int) :square list =
 let getColumn (board:board) (j:int) :square list=
   List.fold_right (fun l acc -> [(List.nth l j)] @acc) board []
 
-let checkMillFromList subBoard (joueur:color) : int =
-  List.fold_right (fun a b -> if a = Color(joueur) then b+1 else if a = Wall then 0 else b) subBoard 0
+let checkMillFromList subBoard (player:color) : int =
+  List.fold_right (fun a b -> if a = Color(player) then b+1 else if a = Wall then 0 else b) subBoard 0
 
-let checkMillInMid subBoard j joueur = 
+let checkMillInMid subBoard j player = 
   let rec aux subBoard distance count=
     match subBoard with 
     |[] -> count
@@ -109,9 +68,14 @@ let boardMap (f:square -> square) (board:board) ((i,j):coordinates) =
   Function that put a piece on the board at the coordinate (i,j) and return the new board
   If the position is not legit for a piece, return the old board
 *)
-let placePiece board (i,j) player : reponse = 
-  let board = boardMap (fun x -> if x = Empty then Color(player) else x) board (i,j) 
-in let check = checkMillFromPosition board (i,j) player in (board,check)
+let placePiece board ((i,j):coordinates) (player:player) : gameUpdate = 
+  if( getSquare board (i,j) = Empty)
+    then
+      let board = boardMap (fun x -> if x = Empty then Color(player.color) else x) board (i,j) 
+    in let check = checkMillFromPosition board (i,j) (player.color) in 
+    {board = board;mill = check;player1 = player;player2 = player;gameIsChanged=true}
+  else
+    {board = board;mill = false;player1 = player;player2 = player;gameIsChanged=false}
 
 (**
   This function remove a piece from the board and returns it
@@ -124,12 +88,12 @@ let remove board (i,j) player : board =
   This function moves a piece from (i1,j1) to (i2,j2)
   Return the changed board if the move is legal, else, return the unchanged board
 *)
-let move (board :board)((i1,j1):coordinates) ((i2,j2):coordinates) (player:color) :reponse = 
+let moveToCoordinates (board :board)((i1,j1):coordinates) ((i2,j2):coordinates) (player:player) : gameUpdate= 
   let arrive = List.nth (List.nth board i2) j2 in
   let depart = List.nth (List.nth board i1) j1 in
-  if arrive = Empty && depart = Color(player)
-  then let sub = remove board (i1,j1) player in placePiece sub (i2,j2) player
-  else (board,false)
+  if arrive = Empty && depart = Color(player.color)
+  then let sub = remove board (i1,j1) player.color in placePiece sub (i2,j2) player
+  else {board = board;mill = false;player1 = player;player2 = player;gameIsChanged=false} 
 
 (** Print the board in the shell *)
 let prettyPrintBoard (b : board) : unit = (List.iter (fun l -> List.iter (printSquare) l; Format.printf "@.") b) ; print_endline ""
@@ -147,27 +111,27 @@ let initBoard =
 
 
 (** Function that move a piece from the coordinate (i,j) to a certain direction *)
-let moveToDirection (b : board) ((i,j) : coordonnee) (d : directionDeplacement) (joueur:color) : reponse =
-  let rec goTo (b : board) ((x,y) : coordonnee) (d : directionDeplacement) (joueur:color) : reponse =
+let moveToDirection (b : board) ((i,j) : coordinates) (d : directionDeplacement) (player:color) : reponse =
+  let rec goTo (b : board) ((x,y) : coordinates) (d : directionDeplacement) (player:color) : reponse =
     match d with
-    | Up -> let case = List.nth (List.nth b (x-1)) y in if case = Path V then goTo b (x-1,y) d joueur else (if case = Empty then deplacer b (i,j) (x-1,y) joueur else (b,false))
-    | Down -> let case = List.nth (List.nth b (x+1)) y in if case = Path V then goTo b (x+1,y) d joueur else (if case = Empty then deplacer b (i,j) (x+1,y) joueur else (b,false))
-    | Right -> let case = List.nth (List.nth b x) (y+1) in if case = Path H then goTo b (x,y+1) d joueur else (if case = Empty then deplacer b (i,j) (x,y+1) joueur else (b,false))
-    | Left -> let case = List.nth (List.nth b x) (y-1) in if case = Path H then goTo b (x,y-1) d joueur else (if case = Empty then deplacer b (i,j) (x,y-1) joueur else (b,false))
-    | Up_right -> let case = List.nth (List.nth b (x-1)) (y+1) in if case = Path DR then goTo b (x-1,y+1) d joueur else (if case = Empty then deplacer b (i,j) (x-1,y+1) joueur else (b,false))
-    | Up_left -> let case = List.nth (List.nth b (x-1)) (y-1) in if case = Path DL then goTo b (x-1,y-1) d joueur else (if case = Empty then deplacer b (i,j) (x-1,y-1) joueur else (b,false))
-    | Down_right -> let case = List.nth (List.nth b (x+1)) (y+1) in if case = Path DL then goTo b (x+1,y+1) d joueur else (if case = Empty then deplacer b (i,j) (x+1,y+1) joueur else (b,false))
-    | Down_left -> let case = List.nth (List.nth b (x+1)) (y-1) in if case = Path DR then goTo b (x+1,y-1) d joueur else (if case = Empty then deplacer b (i,j) (x+1,y-1) joueur else (b,false))
-  in goTo b (i,j) d joueur
+    | Up -> let case = List.nth (List.nth b (x-1)) y in if case = Path V then goTo b (x-1,y) d player else (if case = Empty then moveToCoordinates b (i,j) (x-1,y) player else (b,false))
+    | Down -> let case = List.nth (List.nth b (x+1)) y in if case = Path V then goTo b (x+1,y) d player else (if case = Empty then moveToCoordinates b (i,j) (x+1,y) player else (b,false))
+    | Right -> let case = List.nth (List.nth b x) (y+1) in if case = Path H then goTo b (x,y+1) d player else (if case = Empty then moveToCoordinates b (i,j) (x,y+1) player else (b,false))
+    | Left -> let case = List.nth (List.nth b x) (y-1) in if case = Path H then goTo b (x,y-1) d player else (if case = Empty then moveToCoordinates b (i,j) (x,y-1) player else (b,false))
+    | Up_right -> let case = List.nth (List.nth b (x-1)) (y+1) in if case = Path DR then goTo b (x-1,y+1) d player else (if case = Empty then moveToCoordinates b (i,j) (x-1,y+1) player else (b,false))
+    | Up_left -> let case = List.nth (List.nth b (x-1)) (y-1) in if case = Path DL then goTo b (x-1,y-1) d player else (if case = Empty then moveToCoordinates b (i,j) (x-1,y-1) player else (b,false))
+    | Down_right -> let case = List.nth (List.nth b (x+1)) (y+1) in if case = Path DL then goTo b (x+1,y+1) d player else (if case = Empty then moveToCoordinates b (i,j) (x+1,y+1) player else (b,false))
+    | Down_left -> let case = List.nth (List.nth b (x+1)) (y-1) in if case = Path DR then goTo b (x+1,y-1) d player else (if case = Empty then moveToCoordinates b (i,j) (x+1,y-1) player else (b,false))
+  in goTo b (i,j) d player
 
 
-let possibleMoves (board : board) ((i,j) : coordonnee) (joueur : color) (diagonal : bool): directionDeplacement list = 
-  let aux (board : board) ((i,j) : coordonnee) (dir : directionDeplacement) : directionDeplacement list =
+let possibleMoves (board : board) ((i,j) : coordinates) (player : color) (diagonal : bool): directionDeplacement list = 
+  let aux (board : board) ((i,j) : coordinates) (dir : directionDeplacement) : directionDeplacement list =
     if i >= board_size || i < 0 || j >= board_size || j < 0 then []
     else if List.nth (List.nth board i) j = Empty then [dir] else []
   in
   match getSquare board (i,j) with
-  | Color(p) when p = joueur ->
+  | Color(p) when p = player ->
     let normalMoves = (aux board (i,j+1) Right)@(aux board (i,j-1) Left)@(aux board (i-1,j) Up)@(aux board (i+1,j) Down) in
     if diagonal then normalMoves@(aux board (i+1,j+1) Down_right)@(aux board (i-1,j+1) Up_right)@(aux board (i+1,j-1) Down_left)@(aux board (i-1,j-1) Up_left)
     else normalMoves
@@ -175,6 +139,6 @@ let possibleMoves (board : board) ((i,j) : coordonnee) (joueur : color) (diagona
 
 
 (*Faire une IA qui joue au pif*)
-(*Faire le changement de phase entre il peut placer où il veut et ensuite deplacer de case en case*)
+(*Faire le changement de phase entre il peut placer où il veut et ensuite move de case en case*)
 (*Faire des tests pour verifier les possibles erreurs*)
 

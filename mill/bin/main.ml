@@ -1,4 +1,6 @@
-open Mill.Board
+open Mill.Board;;
+open Mill.Player;;
+open Mill.Type;;
 
 let b = initBoard
 let () = prettyPrintBoard b

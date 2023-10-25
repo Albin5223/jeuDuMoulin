@@ -1,7 +1,3 @@
 val max_pieces : int
-type pieces = (Board.color * Board.coordonnee) list
-type player = {
-  c : Board.color;
-  startPiecePlaced : int;
-  remainingPieces : pieces;
-}
+val reverseColor : Type.color -> Type.color
+val play : 'a -> 'b -> Type.board -> int -> Type.board

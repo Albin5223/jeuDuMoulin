@@ -1,34 +1,25 @@
 val board_size : int
-type color = Black | White
-type direction = H | V | DR | DL
-type coordonnee = int * int
-type square = Empty | Path of direction | Wall | Color of color
-type board = square list list
-type reponse = board * bool
-type directionDeplacement =
-    Up
-  | Down
-  | Right
-  | Left
-  | Up_right
-  | Up_left
-  | Down_right
-  | Down_left
-val printSquare : square -> unit
-val printMove : directionDeplacement -> unit
+val current_phase : int
+val printSquare : Type.square -> unit
+val printMove : Type.directionDeplacement -> unit
 val getSquare : 'a list list -> int * int -> 'a
-val getRow : board -> int -> square list
-val getColumn : board -> int -> square list
-val checkMillFromList : square list -> color -> int
-val checkMillInMid : square list -> int -> color -> int
-val checkMillFromPosition : board -> coordonnee -> color -> bool
-val boardMap : (square -> square) -> board -> coordonnee -> square list list
-val placePiece : board -> int * int -> color -> reponse
-val remove : board -> int * int -> color -> square list list
-val deplacer : board -> coordonnee -> coordonnee -> color -> reponse
-val prettyPrintBoard : board -> unit
-val initBoard : square list list
-val moveToDirection :
-  board -> coordonnee -> directionDeplacement -> color -> reponse
+val getRow : Type.board -> int -> Type.square list
+val getColumn : Type.board -> int -> Type.square list
+val checkMillFromList : Type.square list -> Type.color -> int
+val checkMillInMid : Type.square list -> int -> Type.color -> int
+val checkMillFromPosition :
+  Type.board -> Type.coordinates -> Type.color -> bool
+val boardMap :
+  (Type.square -> Type.square) ->
+  Type.board -> Type.coordinates -> Type.square list list
+val placePiece :
+  Type.board -> Type.coordinates -> Type.player -> Type.gameUpdate
+val remove : Type.board -> int * int -> Type.color -> Type.board
+val moveToCoordinates :
+  Type.board ->
+  Type.coordinates -> Type.coordinates -> Type.player -> Type.gameUpdate
+val prettyPrintBoard : Type.board -> unit
+val initBoard : Type.square list list
 val possibleMoves :
-  board -> coordonnee -> color -> bool -> directionDeplacement list
+  Type.board ->
+  Type.coordinates -> Type.color -> bool -> Type.directionDeplacement list
