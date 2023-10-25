@@ -28,6 +28,12 @@ type player = {
   bag : coordinates list;
 }
 
+type phase =
+  | Placing
+  | Moving
+  | Flying of player 
+  | BothFlying
+
 (** This type will be returned after each function that alterate the state of the game *)
 type gameUpdate = {board : board; mill : bool; player1 : player; player2 : player; gameIsChanged : bool}
 

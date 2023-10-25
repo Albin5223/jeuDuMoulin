@@ -2,12 +2,6 @@ open Type
 
 (** This represent the size of the board **)
 let board_size = 7
-let current_phase = 1
-(*
-Phase 1 : Placing pieces
-Phase 2 : Moving pieces
-Phase 3 : "Flying"
-*)
 
 (** Represent the maximum amount of pieces that each player can put on board *)
 let maxPiecesPerPlayer = 9
@@ -166,17 +160,17 @@ let moveToDirection (game : gameUpdate) ((i,j) : coordinates) (d : directionDepl
   in goTo game (i,j) d color
 
 
-let possibleMoves (board : board) ((i,j) : coordinates) (player : color) (diagonal : bool): directionDeplacement list = 
-  let aux (board : board) ((i,j) : coordinates) (dir : directionDeplacement) : directionDeplacement list =
+let possibleMoves (game : gameUpdate) ((i,j) : coordinates) (player : color) (diagonal : bool): directionDeplacement list = 
+  let aux (game : gameUpdate) ((i,j) : coordinates) (dir : directionDeplacement) : directionDeplacement list =
     if i >= board_size || i < 0 || j >= board_size || j < 0 then []
-    else if List.nth (List.nth board i) j = Empty then [dir] else []
+    else if List.nth (List.nth game.board i) j = Empty then [dir] else []
   in
-  match getSquare board (i,j) with
+  match getSquare game.board (i,j) with
   | Some (Color(p)) when p = player ->
-    let normalMoves = (aux board (i,j+1) Right)@(aux board (i,j-1) Left)@(aux board (i-1,j) Up)@(aux board (i+1,j) Down) in
-    if diagonal then normalMoves@(aux board (i+1,j+1) Down_right)@(aux board (i-1,j+1) Up_right)@(aux board (i+1,j-1) Down_left)@(aux board (i-1,j-1) Up_left)
+    let normalMoves = (aux game (i,j+1) Right)@(aux game (i,j-1) Left)@(aux game (i-1,j) Up)@(aux game (i+1,j) Down) in
+    if diagonal then normalMoves@(aux game (i+1,j+1) Down_right)@(aux game (i-1,j+1) Up_right)@(aux game (i+1,j-1) Down_left)@(aux game (i-1,j-1) Up_left)
     else normalMoves
-  | _ -> [] 
+  | _ -> []
 
 
 (*Faire une IA qui joue au pif*)

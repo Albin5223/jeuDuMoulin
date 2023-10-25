@@ -1,5 +1,4 @@
 val board_size : int
-val current_phase : int
 val maxPiecesPerPlayer : int
 val notUpdatedGame : Type.gameUpdate -> Type.gameUpdate
 val printSquare : Type.square -> unit
@@ -34,5 +33,5 @@ val moveToDirection :
   Type.coordinates ->
   Type.directionDeplacement -> Type.color -> Type.gameUpdate
 val possibleMoves :
-  Type.board ->
+  Type.gameUpdate ->
   Type.coordinates -> Type.color -> bool -> Type.directionDeplacement list

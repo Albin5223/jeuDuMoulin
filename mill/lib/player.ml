@@ -1,4 +1,5 @@
-open Type
+open Type;;
+open Board;;
 
 let initPlayer (c : Type.color) : player = {color = c; bag = []; piecePlaced = 0; nbPiecesOnBoard = 0}
 
@@ -11,19 +12,23 @@ let reverseColor (c : Type.color) : Type.color =
   | Type.White -> Type.Black
 
 
-(*
-let play (player : player) (opponent : player) (board : Type.board) (current_phase : int) : Type.board =
-  let (i,j) = List.nth (player.bag) (Random.int player.piecePlaced) in
-  if current_phase = 1 then 
-    let tmp = placePiece board (i,j) player in
+
+let rec playRandomly (player : player) (opponent : player) (game : gameUpdate) (current_phase : phase) : gameUpdate =
+  if current_phase = Placing then 
+    let i = Random.int board_size in
+    let j =  Random.int board_size in
+    let tmp = placeStartPiece game (i,j) player.color in
     if tmp.mill
-      then remove board (List.nth (opponent.bag) (Random.int opponent.piecePlaced)) opponent.color
-    else tmp.board
-  
-  else if current_phase = 2 || current_phase = 3 then 
-    let movesPossible = possibleMoves board (i,j) player.color false in
-    let tmp = moveToDirection board (i,j) (List.nth movesPossible (Random.int (List.length movesPossible))) player.color in
-    if tmp.mill 
-      then remove board (List.nth (opponent.bag) (Random.int opponent.piecePlaced)) opponent.color
-    else tmp.board
-    *)
+      then eliminatePiece game (List.nth (opponent.bag) (Random.int opponent.nbPiecesOnBoard)) opponent.color
+    else if not tmp.gameIsChanged then playRandomly player opponent game current_phase
+    else tmp
+
+  else
+    let (x,y) = (List.nth player.bag (Random.int player.nbPiecesOnBoard)) in
+    let movesPossible = possibleMoves game (x,y) player.color false in
+    if List.length movesPossible = 0 then playRandomly player opponent game current_phase
+    else
+      let tmp = moveToDirection game (x,y) (List.nth movesPossible (Random.int (List.length movesPossible))) player.color in
+      if tmp.mill 
+        then eliminatePiece game (List.nth (opponent.bag) (Random.int opponent.nbPiecesOnBoard)) opponent.color
+      else tmp
