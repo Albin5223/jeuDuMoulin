@@ -69,24 +69,6 @@ let () = prettyPrintBoard game.board
 let game = playRandomly game.player2 game.player1 game current_phase 
 let () = prettyPrintBoard game.board;
 
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
-print_int (Random.int board_size);
 (*
 let game = placeStartPiece game (0,0) Black
 let () = prettyPrintBoard game.board

@@ -14,6 +14,7 @@ let reverseColor (c : Type.color) : Type.color =
 
 
 let rec playRandomly (player : player) (opponent : player) (game : gameUpdate) (current_phase : phase) : gameUpdate =
+  Random.self_init ();
   if current_phase = Placing then 
     let i = Random.int board_size in
     let j =  Random.int board_size in

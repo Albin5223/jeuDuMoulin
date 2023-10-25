@@ -168,9 +168,13 @@ let moveToDirection (game : gameUpdate) ((i,j) : coordinates) (d : directionDepl
 
 
 let possibleMoves (game : gameUpdate) ((i,j) : coordinates) (player : color) (diagonal : bool): directionDeplacement list = 
-  let aux (game : gameUpdate) ((i,j) : coordinates) (dir : directionDeplacement) : directionDeplacement list =
+  let rec aux (game : gameUpdate) ((i,j) : coordinates) (dir : directionDeplacement) : directionDeplacement list =
     if i >= board_size || i < 0 || j >= board_size || j < 0 then []
-    else if List.nth (List.nth game.board i) j = Empty then [dir] else []
+    else 
+      match (List.nth (List.nth game.board i) j) with
+      | Empty -> [dir]
+      | Path(_) -> aux game (coordinatesFromDirections dir (i,j)) dir
+      | _ -> []
   in
   match getSquare game.board (i,j) with
   | Some (Color(p)) when p = player ->
@@ -180,7 +184,4 @@ let possibleMoves (game : gameUpdate) ((i,j) : coordinates) (player : color) (di
   | _ -> []
 
 
-(*Faire une IA qui joue au pif*)
 (*Faire le changement de phase entre il peut placer où il veut et ensuite move de case en case*)
-(*Faire des tests pour verifier les possibles erreurs*)
-
