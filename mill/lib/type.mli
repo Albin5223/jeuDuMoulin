@@ -6,7 +6,8 @@ type board = square list list
 type player = {
   color : color;
   piecePlaced : int;
-  remainingPieces : coordinates list;
+  nbPiecesOnBoard : int;
+  bag : coordinates list;
 }
 type gameUpdate = {
   board : board;
@@ -15,7 +16,7 @@ type gameUpdate = {
   player2 : player;
   gameIsChanged : bool;
 }
-type reponse = board * bool
+type gotMill = board * bool
 type directionDeplacement =
     Up
   | Down

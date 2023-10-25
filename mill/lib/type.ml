@@ -1,5 +1,4 @@
 (** Defines the two type of piece, Black pieces and White pieces *)
-
 type color = Black | White
 
 (**
@@ -25,14 +24,15 @@ type board = square list list
 type player = {
   color : color;
   piecePlaced : int;
-  remainingPieces : coordinates list;
+  nbPiecesOnBoard : int;
+  bag : coordinates list;
 }
 
-
+(** This type will be returned after each function that alterate the state of the game *)
 type gameUpdate = {board : board; mill : bool; player1 : player; player2 : player; gameIsChanged : bool}
 
-(** Will be returned after a move, and will let us know if the move was legit or not *)
-type reponse = board * bool
+(** Will be returned after a move, and will let us know if the move produce a mill or not *)
+type gotMill = board * bool
 
 (** This type will be used when moving a piece to a certain direction *)
 type directionDeplacement = 
