@@ -34,7 +34,7 @@ let (b,_) = placePiece b (0,3) Black
 let (b,_) = placePiece b (1,3) Black
 let (b,rep) = placePiece b (2,3) Black
 
-(*let print (b : square list) : unit = List.iter (fun s -> printSquare s; Format.printf "@.") b ; print_endline ""*)
+let printList (b : square list) : unit = List.iter (fun s -> printSquare s; Format.printf "@.") b ; print_endline ""
 let () = prettyPrintBoard b
 let () = if rep then print_endline "Moulin" else print_endline "No moulin"
 
@@ -46,3 +46,11 @@ let (b,_) = placePiece b (3,1) White
 let (b,rep) = placePiece b (3,2) White
 let () = prettyPrintBoard b
 let () = if rep then print_endline "Moulin" else print_endline "No moulin"
+
+;;print_endline "Test PossibleMove";;
+let printMoveList (b : directionDeplacement list) : unit = List.iter (fun s -> printMove s; Format.printf "@.") b ; print_endline ""
+let () = printMoveList( (possibleMoves b (3,2) White false))
+
+
+;;print_endline "Test Column";;
+let () = printList(getColumn b 3)

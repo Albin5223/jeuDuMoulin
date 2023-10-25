@@ -10,8 +10,12 @@ type directionDeplacement =
   | Down
   | Right
   | Left
-  | Diagonal of directionDeplacement * directionDeplacement
+  | Up_right
+  | Up_left
+  | Down_right
+  | Down_left
 val printSquare : square -> unit
+val printMove : directionDeplacement -> unit
 val getSquare : 'a list list -> int * int -> 'a
 val getRow : board -> int -> square list
 val getColumn : board -> int -> square list
@@ -26,3 +30,5 @@ val prettyPrintBoard : board -> unit
 val initBoard : square list list
 val moveToDirection :
   board -> coordonnee -> directionDeplacement -> color -> reponse
+val possibleMoves :
+  board -> coordonnee -> color -> bool -> directionDeplacement list
