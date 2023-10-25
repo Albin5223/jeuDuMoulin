@@ -155,9 +155,7 @@ let possibleMoves (board : board) ((i,j) : coordonnee) (joueur : color) (diagona
     else normalMoves
 
 
-(*Rajouter une fonction qui en fonction d'une position renvoie la liste des mouvements possibles*)
 (*Faire une IA qui joue au pif*)
-(*Un bot qui repère une position qui empeche un moulin de l'adversaire*)
 (*Faire le changement de phase entre il peut placer où il veut et ensuite deplacer de case en case*)
 (*Faire des tests pour verifier les possibles erreurs*)
 
