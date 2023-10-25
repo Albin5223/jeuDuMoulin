@@ -42,6 +42,13 @@ let coordinatesFromDirections d (i,j) =
   | Down_right -> (i+1,j+1)
   | Down_left -> (i+1,j-1)
 
+let pathToHaveFromDirection d =
+  match d with
+  | Up | Down -> Path(V)
+  | Right | Left -> Path(H)
+  | Up_right | Down_left -> Path(DR)
+  | Up_left | Down_right -> Path(DL)
+
 let getSquare board (i,j) = 
   if i >= board_size || i < 0 || j >= board_size || j < 0 then None
   else Some (List.nth (List.nth board (i)) j)
@@ -153,10 +160,10 @@ let initBoard =
 
 
 (** Function that move a piece from the coordinate (i,j) to a certain direction *)
-let moveToDirection (game : gameUpdate) ((i,j) : coordinates) (d : directionDeplacement) (color:color) : gameUpdate =
-  let cooBis dir = coordinatesFromDirections dir (i,j) in 
-  let rec goTo (game : gameUpdate) _ (d : directionDeplacement) (color:color) : gameUpdate =
-    let case = getSquare game.board (cooBis d ) in if case = Some (Path V) then goTo game (cooBis d) d color else (if case = Some Empty then moveToCoordinates game (i,j) (cooBis d) color else notUpdatedGame game)
+let moveToDirection (game : gameUpdate) ((i,j) : coordinates) (d : directionDeplacement) (color:color) : gameUpdate = 
+  let rec goTo (game : gameUpdate) ((x,y):coordinates) (d : directionDeplacement) (color:color) : gameUpdate =
+    let cooBis dir = coordinatesFromDirections dir (x,y) in
+    let case = getSquare game.board (cooBis d) in if case = Some (pathToHaveFromDirection d) then goTo game (cooBis d) d color else (if case = (Some Empty) then moveToCoordinates game (i,j) (cooBis d) color else notUpdatedGame game)
   in goTo game (i,j) d color
 
 

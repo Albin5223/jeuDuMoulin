@@ -5,6 +5,7 @@ val printSquare : Type.square -> unit
 val printMove : Type.directionDeplacement -> unit
 val coordinatesFromDirections :
   Type.directionDeplacement -> int * int -> int * int
+val pathToHaveFromDirection : Type.directionDeplacement -> Type.square
 val getSquare : 'a list list -> int * int -> 'a option
 val getRow : Type.board -> int -> Type.square list
 val getColumn : Type.board -> int -> Type.square list
