@@ -10,10 +10,7 @@ type directionDeplacement =
   | Down
   | Right
   | Left
-  | Up_right
-  | Up_left
-  | Down_right
-  | Down_left
+  | Diagonal of directionDeplacement * directionDeplacement
 val printSquare : square -> unit
 val getSquare : 'a list list -> int * int -> 'a
 val getRow : board -> int -> square list

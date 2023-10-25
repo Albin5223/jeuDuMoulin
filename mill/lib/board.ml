@@ -32,10 +32,7 @@ type directionDeplacement =
   | Down
   | Right
   | Left
-  | Up_right
-  | Up_left
-  | Down_right
-  | Down_left
+  | Diagonal of directionDeplacement * directionDeplacement
 
 (** Function that print a board square *)
 let printSquare (s : square) = 
@@ -135,12 +132,12 @@ let moveToDirection (b : board) ((i,j) : coordonnee) (d : directionDeplacement) 
     | Down -> let case = List.nth (List.nth b (x+1)) y in if case = Path V then goTo b (x+1,y) d joueur else (if case = Empty then deplacer b (i,j) (x+1,y) joueur else (b,false))
     | Right -> let case = List.nth (List.nth b x) (y+1) in if case = Path H then goTo b (x,y+1) d joueur else (if case = Empty then deplacer b (i,j) (x,y+1) joueur else (b,false))
     | Left -> let case = List.nth (List.nth b x) (y-1) in if case = Path H then goTo b (x,y-1) d joueur else (if case = Empty then deplacer b (i,j) (x,y-1) joueur else (b,false))
-    | Up_right -> let case = List.nth (List.nth b (x-1)) (y+1) in if case = Path DR then goTo b (x-1,y+1) d joueur else (if case = Empty then deplacer b (i,j) (x-1,y+1) joueur else (b,false))
-    | Up_left -> let case = List.nth (List.nth b (x-1)) (y-1) in if case = Path DL then goTo b (x-1,y-1) d joueur else (if case = Empty then deplacer b (i,j) (x-1,y-1) joueur else (b,false))
-    | Down_right -> let case = List.nth (List.nth b (x+1)) (y+1) in if case = Path DL then goTo b (x+1,y+1) d joueur else (if case = Empty then deplacer b (i,j) (x+1,y+1) joueur else (b,false))
-    | Down_left -> let case = List.nth (List.nth b (x+1)) (y-1) in if case = Path DR then goTo b (x+1,y-1) d joueur else (if case = Empty then deplacer b (i,j) (x+1,y-1) joueur else (b,false))
+    | Diagonal(Up,Right) -> let case = List.nth (List.nth b (x-1)) (y+1) in if case = Path DR then goTo b (x-1,y+1) d joueur else (if case = Empty then deplacer b (i,j) (x-1,y+1) joueur else (b,false))
+    | Diagonal(Up,Left) -> let case = List.nth (List.nth b (x-1)) (y-1) in if case = Path DL then goTo b (x-1,y-1) d joueur else (if case = Empty then deplacer b (i,j) (x-1,y-1) joueur else (b,false))
+    | Diagonal(Down,Right) -> let case = List.nth (List.nth b (x+1)) (y+1) in if case = Path DL then goTo b (x+1,y+1) d joueur else (if case = Empty then deplacer b (i,j) (x+1,y+1) joueur else (b,false))
+    | Diagonal(Down,Left) -> let case = List.nth (List.nth b (x+1)) (y-1) in if case = Path DR then goTo b (x+1,y-1) d joueur else (if case = Empty then deplacer b (i,j) (x+1,y-1) joueur else (b,false))
+    | _ -> board
   in goTo b (i,j) d joueur
-
 
 
 let possibleMoves (board : board) ((i,j) : coordonnee) (joueur : color) (diagonal : bool): directionDeplacement list = 
@@ -150,8 +147,8 @@ let possibleMoves (board : board) ((i,j) : coordonnee) (joueur : color) (diagona
   in
   if (List.nth (List.nth board i) j) != Color(joueur) then []
   else
-    let normalMoves = (aux board (i+1,j) Right)@(aux board (i-1,j) Left)@(aux board (i,j-1) Up)@(aux board (i,j+1) Down);
-    if diagonal then normalMoves@(aux board (i+1,j+1) Diagonal(Right,Down))@(aux board (i+1,j-1) Diagonal(Right,Up))@(aux board (i-1,j+1) Diagonal(Left,Down))@(aux board (i-1,j-1) Diagonal(Left,Up))
+    let normalMoves = (aux board (i+1,j) Right)@(aux board (i-1,j) Left)@(aux board (i,j-1) Up)@(aux board (i,j+1) Down) in
+    if diagonal then normalMoves@(aux board (i+1,j+1) (Diagonal(Right,Down)))@(aux board (i+1,j-1) (Diagonal(Right,Up)))@(aux board (i-1,j+1) (Diagonal(Left,Down)))@(aux board (i-1,j-1) (Diagonal(Left,Up)))
     else normalMoves
 
 
