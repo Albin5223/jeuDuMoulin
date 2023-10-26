@@ -1,7 +1,7 @@
 open Type
 
 (** This represent the size of the board **)
-let board_size = 7
+let board_size = 13
 
 (** Represent the maximum amount of pieces that each player can put on board *)
 let maxPiecesPerPlayer = 9
@@ -17,6 +17,8 @@ let printSquare (s : square) =
   | Empty -> Format.printf "{ }"
   | Path(H) -> Format.printf "---"
   | Path(V) -> Format.printf " | "
+  | Path(DR) -> Format.printf " / "
+  | Path(DL) -> Format.printf " \\ "
   |_ -> Format.printf "   "
 
 let printMove (m : directionDeplacement) = 
@@ -175,13 +177,34 @@ let initBoard =
 [Empty;Path(H);Path(H);Empty;Path(H);Path(H);Empty]]
 *)
 
+let initBoard2 =
+  [[Empty;Path(H);Path(H);Path(H);Path(H);Path(H);Empty;Path(H);Path(H);Path(H);Path(H);Path(H);Empty];
+  [Path(V);Wall;Wall;Wall;Wall;Wall;Path(V);Wall;Wall;Wall;Wall;Wall;Path(V)];
+  [Path(V);Wall;Empty;Path(H);Path(H);Path(H);Empty;Path(H);Path(H);Path(H);Empty;Wall;Path(V)];
+  [Path(V);Wall;Path(V);Wall;Wall;Wall;Path(V);Wall;Wall;Wall;Path(V);Wall;Path(V)];
+  [Path(V);Wall;Path(V);Wall;Empty;Path(H);Empty;Path(H);Empty;Wall;Path(V);Wall;Path(V)];
 
-(** Function that move a piece from the coordinate (i,j) to a certain direction *)
-let moveToDirection (game : gameUpdate) ((i,j) : coordinates) (d : directionDeplacement) (color:color) : gameUpdate = 
+  [Path(V);Wall;Path(V);Wall;Path(V);Wall;Wall;Wall;Path(V);Wall;Path(V);Wall;Path(V)];
+  [Empty;Path(H);Empty;Path(H);Empty;Wall;Wall;Wall;Empty;Path(H);Empty;Path(H);Empty];
+  [Path(V);Wall;Path(V);Wall;Path(V);Wall;Wall;Wall;Path(V);Wall;Path(V);Wall;Path(V)];
+
+  [Path(V);Wall;Path(V);Wall;Empty;Path(H);Empty;Path(H);Empty;Wall;Path(V);Wall;Path(V)];
+  [Path(V);Wall;Path(V);Wall;Wall;Wall;Path(V);Wall;Wall;Wall;Path(V);Wall;Path(V)];
+  [Path(V);Wall;Empty;Path(H);Path(H);Path(H);Empty;Path(H);Path(H);Path(H);Empty;Wall;Path(V)];
+  [Path(V);Wall;Wall;Wall;Wall;Wall;Path(V);Wall;Wall;Wall;Wall;Wall;Path(V)];
+  [Empty;Path(H);Path(H);Path(H);Path(H);Path(H);Empty;Path(H);Path(H);Path(H);Path(H);Path(H);Empty]]
+
+
+(** Function that move a piece from the coordinate (i,j) to a certain direction (DO NOT PUT THIS IN THE ".MLI") *)
+let privateMoveToDirection (game : gameUpdate) ((i,j) : coordinates) (d : directionDeplacement) (color:color) : gameUpdate = 
   let rec goTo (game : gameUpdate) ((x,y):coordinates) (d : directionDeplacement) (color:color) : gameUpdate =
     let cooBis dir = coordinatesFromDirections dir (x,y) in
     let case = getSquare game.board (cooBis d) in if case = Some (pathToHaveFromDirection d) then goTo game (cooBis d) d color else (if case = (Some Empty) then moveToCoordinates game (i,j) (cooBis d) color else notUpdatedGame game)
   in goTo game (i,j) d color
+
+(** Function that move a piece from the coordinate (i,j) to a certain direction only if there is a Path in this direction *)
+let moveToDirection (game : gameUpdate) ((i,j) : coordinates) (d : directionDeplacement) (color:color) : gameUpdate = 
+  if getSquare game.board (coordinatesFromDirections d (i,j)) = Some (pathToHaveFromDirection d) then privateMoveToDirection game (i,j) d color else notUpdatedGame game
 
 
 let possibleMoves (game : gameUpdate) ((i,j) : coordinates) (player : color) (diagonal : bool): directionDeplacement list = 
