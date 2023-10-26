@@ -1,7 +1,8 @@
-open Mill.Board;;
+(* Mill.Board;;
 open Mill.Player;;
-open Mill.Type;;
+open Mill.Type;;*)
 
+(*
 let current_phase = Placing
 
 let initGame = {board= initBoard; mill = false; player1 = initPlayer Black; player2 = initPlayer White; gameIsChanged = false}
@@ -68,7 +69,7 @@ let () = prettyPrintBoard game.board
 
 let game = playRandomly game.player2 game.player1 game current_phase 
 let () = prettyPrintBoard game.board;
-
+*)
 (*
 let game = placeStartPiece game (0,0) Black
 let () = prettyPrintBoard game.board
@@ -104,3 +105,5 @@ let () = prettyPrintBoard game.board
 
 ;;if game.mill then print_endline "Moulin" else print_endline "No moulin";;
 *)
+
+
