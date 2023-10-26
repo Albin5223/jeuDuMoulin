@@ -149,6 +149,23 @@ let prettyPrintBoard (b : board) : unit = (List.iter (fun l -> List.iter (printS
 
 (** Init a start board *)
 let initBoard =  
+  
+  let rec aux x =
+    let rec aux2 i j =
+      match (i,j) with
+      |(7,_)|(_,7)->[]
+      |(3,3)->[Wall]@(aux2 i (j+1))
+      |(3,_)|(_,3) -> [Empty]@(aux2 i (j+1))
+      |(a,b) when (a = b || (a+b) = 6) ->[Empty]@(aux2 i (j+1))
+      |(0,_)|(6,_)|(_,2)|(_,4)-> [Path(H)]@(aux2 i (j+1))
+      |_-> [Path(V)]@(aux2 i (j+1))
+      
+ 
+      in
+    if x < 7 then (aux2 x 0)::(aux (x+1)) else []  
+  in 
+  aux 0
+  (*
   [[Empty;Path(H);Path(H);Empty;Path(H);Path(H);Empty];
 [Path(V);Empty;Path(H);Empty;Path(H);Empty;Path(V)];
 [Path(V);Path(V);Empty;Empty;Empty;Path(V);Path(V)];
@@ -156,7 +173,7 @@ let initBoard =
 [Path(V);Path(V);Empty;Empty;Empty;Path(V);Path(V)];
 [Path(V);Empty;Path(H);Empty;Path(H);Empty;Path(V)];
 [Empty;Path(H);Path(H);Empty;Path(H);Path(H);Empty]]
-
+*)
 
 
 (** Function that move a piece from the coordinate (i,j) to a certain direction *)
@@ -182,5 +199,6 @@ let possibleMoves (game : gameUpdate) ((i,j) : coordinates) (player : color) (di
     if diagonal then normalMoves@(aux game (i+1,j+1) Down_right)@(aux game (i-1,j+1) Up_right)@(aux game (i+1,j-1) Down_left)@(aux game (i-1,j-1) Up_left)
     else normalMoves
   | _ -> []
+
 
 (*Faire le changement de phase entre il peut placer où il veut et ensuite move de case en case*)
