@@ -1,54 +1,13 @@
+open Type
+
 (** This represent the size of the board **)
 let board_size = 7
-let current_phase = 1
-(*
-Phase 1 : Placing pieces
-Phase 2 : Moving pieces
-Phase 3 : "Flying"
-*)
 
-(** Defines the two type of piece, Black pieces and White pieces *)
-type color = Black | White
+(** Represent the maximum amount of pieces that each player can put on board *)
+let maxPiecesPerPlayer = 9
 
-let reverseColor (c : color) : color =
-  match c with
-  | Black -> White
-  | White -> Black
 
-(**
-  Will be used in the type : square.
-  Example : If a piece wants to move down, but the box below do not contain a "Path of V" (V for vertical), it means that it can't go down.   
-*)
-type direction = H | V | DR | DL
-
-(** Coordinates *)
-type coordinates = int*int
-
-(** The grid squares, stored in our type board *)
-type square =
-  | Empty
-  | Path of direction
-  | Wall
-  | Color of color
-
-(** This will represent the game's board *)
-type board = square list list
-
-type gameUpdate = {board : board; mill : bool; player1 : player; player2 : player; gameIsChanged : bool}
-
-(** Will be returned after a move, and will let us know if the move was legit or not *)
-type reponse = board * bool
-
-(** This type will be used when moving a piece to a certain direction *)
-type directionDeplacement = 
-  | Up
-  | Down
-  | Right
-  | Left
-  | Up_right
-  | Up_left
-  | Down_right
-  | Down_left
+let notUpdatedGame game = {board = game.board; mill = game.mill; player1 = game.player1; player2 = game.player2; gameIsChanged = false}
 
 (** Function that print a board square *)
 let printSquare (s : square) = 
@@ -71,8 +30,28 @@ let printMove (m : directionDeplacement) =
   | Down_right -> Format.printf "Down_right"
   | Down_left -> Format.printf "Down_left"
 
+(** Returns the coordinates from some coordinates and its direction *)
+let coordinatesFromDirections d (i,j) =
+  match d with
+  | Up -> (i-1,j)
+  | Down -> (i+1,j)
+  | Right -> (i,j+1)
+  | Left -> (i,j-1)
+  | Up_right -> (i-1,j+1)
+  | Up_left -> (i-1,j-1)
+  | Down_right -> (i+1,j+1)
+  | Down_left -> (i+1,j-1)
+
+let pathToHaveFromDirection d =
+  match d with
+  | Up | Down -> Path(V)
+  | Right | Left -> Path(H)
+  | Up_right | Down_left -> Path(DR)
+  | Up_left | Down_right -> Path(DL)
+
 let getSquare board (i,j) = 
-  List.nth (List.nth board (i)) j
+  if i >= board_size || i < 0 || j >= board_size || j < 0 then None
+  else Some (List.nth (List.nth board (i)) j)
 
 let getRow (board:board) (i:int) :square list =
   List.nth board i
@@ -80,26 +59,26 @@ let getRow (board:board) (i:int) :square list =
 let getColumn (board:board) (j:int) :square list=
   List.fold_right (fun l acc -> [(List.nth l j)] @acc) board []
 
-let checkMillFromList subBoard (joueur:color) : int =
-  List.fold_right (fun a b -> if a = Color(joueur) then b+1 else if a = Wall then 0 else b) subBoard 0
+let checkMillFromList subBoard color : int =
+  List.fold_right (fun a b -> if a = Color(color) then b+1 else if a = Wall then 0 else b) subBoard 0
 
-let checkMillInMid subBoard j joueur = 
+let checkMillInMid subBoard j color = 
   let rec aux subBoard distance count=
     match subBoard with 
     |[] -> count
     |Wall::_ when distance = 0-> count
-    |x::xs when distance = 0 -> if x = Color(player) then aux xs distance (count+1) else aux xs distance count
+    |x::xs when distance = 0 -> if x = Color(color) then aux xs distance (count+1) else aux xs distance count
     |_::xs -> aux xs (distance-1) count
   in if j<board_size/2 then aux subBoard 0 0 else aux subBoard 4 0
 
 
 (**Function that check if there is a mill from a certain position(i,j)**)
   (*A FINIIIIR*)
-let checkMillFromPosition (board:board) ((i,j):coordinates) player:bool = 
+let checkMillFromPosition (board:board) ((i,j):coordinates) color : bool = 
   match i,j with 
-  |(3,_) -> (checkMillFromList (getColumn board j) player = 3) || (checkMillInMid (getRow board i) j player = 3)
-  |(_,3) -> (checkMillFromList (getRow board i) player = 3) || (checkMillInMid (getColumn board j) i player = 3)
-  |_ ->(checkMillFromList (getRow board i) player = 3) || (checkMillFromList (getColumn board j) player = 3)
+  |(3,_) -> (checkMillFromList (getColumn board j) color = 3) || (checkMillInMid (getRow board i) j color = 3)
+  |(_,3) -> (checkMillFromList (getRow board i) color = 3) || (checkMillInMid (getColumn board j) i color = 3)
+  |_ ->(checkMillFromList (getRow board i) color = 3) || (checkMillFromList (getColumn board j) color = 3)
 
 (** A map that apply the function "f" to the square at the coordinate (i,j) of the board *)
 let boardMap (f:square -> square) (board:board) ((i,j):coordinates) =
@@ -107,29 +86,63 @@ let boardMap (f:square -> square) (board:board) ((i,j):coordinates) =
 
 (**
   Function that put a piece on the board at the coordinate (i,j) and return the new board
-  If the position is not legit for a piece, return the old board
+  If the position is not legit for a piece, return the old state of the game with the old board
 *)
-let placePiece board (i,j) player : reponse = 
-  let board = boardMap (fun x -> if x = Empty then Color(player) else x) board (i,j) 
-in let check = checkMillFromPosition board (i,j) player in (board,check)
+let placePieceOnBoard (board : board) ((i,j):coordinates) color : gotMill = 
+  let board = boardMap (fun x -> if x = Empty then Color(color) else x) board (i,j) in
+  let check = checkMillFromPosition board (i,j) color in (board,check)
+
+(** Function that put a start piece on the board at the coordinate (i,j) and return the new game state *)
+let placeStartPiece (game : gameUpdate) ((i,j):coordinates) (color:color) : gameUpdate = 
+  let concernedPlayer = if game.player1.color = color then game.player1 else game.player2 in
+  if(getSquare game.board (i,j) = Some Empty && (concernedPlayer.piecePlaced < maxPiecesPerPlayer))
+    then
+      let (board, isMill) = placePieceOnBoard game.board (i,j) color in
+      let updatedPlayer = {color = concernedPlayer.color; piecePlaced = concernedPlayer.piecePlaced + 1; nbPiecesOnBoard = concernedPlayer.nbPiecesOnBoard + 1; bag = concernedPlayer.bag@[(i,j)]} in
+      if color = game.player1.color
+        then {board = board;mill = isMill;player1 = updatedPlayer;player2 = game.player2;gameIsChanged=true}
+        else {board = board;mill = isMill;player1 = game.player1;player2 = updatedPlayer;gameIsChanged=true}
+    else
+    {board = game.board;mill = false;player1 = game.player1;player2 = game.player2;gameIsChanged=false}
 
 (**
   This function remove a piece from the board and returns it
-  Return an unchanged board if there is no piece in (i,j)
+  Return an unchanged board if there is no piece in (i,j) 
 *)
-let remove board (i,j) player : board =
-  boardMap (fun x -> if x = Color(player) then Empty else x) board (i,j)
+let removeFromBoard (board : board) ((i,j) : coordinates) color : board = 
+  boardMap (fun x -> if x = Color(color) then Empty else x) board (i,j)
+
+(** This function eliminate a piece from the board and returns the new game state *)
+let eliminatePiece (game : gameUpdate) (i,j) color : gameUpdate =
+  if (getSquare game.board (i,j) != Some (Color color))  (* If the piece does not exist in (i,j), we do nothing *)
+    then notUpdatedGame game
+    else  (* Else, we remove the piece and apply the changes for the bag of the concerned player *)
+      let concernedPlayer = if game.player1.color = color then game.player1 else game.player2 in
+      let newBag = (List.filter (fun (x,y) -> (x,y) <> (i,j)) concernedPlayer.bag) in
+      let newBoard = removeFromBoard game.board (i,j) color in
+      let updatedPlayer = {color = concernedPlayer.color; piecePlaced = concernedPlayer.piecePlaced; nbPiecesOnBoard = concernedPlayer.nbPiecesOnBoard - 1; bag = newBag} in
+      if color = game.player1.color
+        then {board = newBoard;mill = false; player1 = updatedPlayer;player2 = game.player2;gameIsChanged=true}
+        else {board = newBoard;mill = false; player1 = game.player1;player2 = updatedPlayer;gameIsChanged=true}
 
 (**
   This function moves a piece from (i1,j1) to (i2,j2)
   Return the changed board if the move is legal, else, return the unchanged board
 *)
-let move (board :board)((i1,j1):coordinates) ((i2,j2):coordinates) (player:color) :reponse = 
-  let arrive = List.nth (List.nth board i2) j2 in
-  let depart = List.nth (List.nth board i1) j1 in
-  if arrive = Empty && depart = Color(player)
-  then let sub = remove board (i1,j1) player in placePiece sub (i2,j2) player
-  else (board,false)
+let moveToCoordinates (game : gameUpdate) ((i1,j1):coordinates) ((i2,j2):coordinates) (color:color) : gameUpdate = 
+  let arrive = getSquare game.board (i2,j2) in
+  let depart = getSquare game.board (i1,j1) in
+  if arrive = Some Empty && depart = Some (Color(color))
+  then
+    let concernedPlayer = if game.player1.color = color then game.player1 else game.player2 in
+    let sub = removeFromBoard game.board (i1,j1) concernedPlayer.color in 
+    let newBag = (List.map (fun (x,y) -> if (x,y) = (i1,j1) then (i2,j2) else (x,y)) concernedPlayer.bag) in
+    let (newBoard,isMill) = placePieceOnBoard sub (i2,j2) concernedPlayer.color in
+    let newPlayer = {color = concernedPlayer.color; piecePlaced = concernedPlayer.piecePlaced; nbPiecesOnBoard = concernedPlayer.nbPiecesOnBoard; bag = newBag} in
+    if color = game.player1.color
+      then {board = newBoard;mill = isMill; player1 = newPlayer; player2 = game.player2;gameIsChanged = true}
+      else {board = newBoard;mill = isMill; player1 = game.player1; player2 = newPlayer;gameIsChanged = true}
+  else notUpdatedGame game 
 
 (** Print the board in the shell *)
 let prettyPrintBoard (b : board) : unit = (List.iter (fun l -> List.iter (printSquare) l; Format.printf "@.") b) ; print_endline ""
@@ -147,34 +160,27 @@ let initBoard =
 
 
 (** Function that move a piece from the coordinate (i,j) to a certain direction *)
-let moveToDirection (b : board) ((i,j) : coordonnee) (d : directionDeplacement) (joueur:color) : reponse =
-  let rec goTo (b : board) ((x,y) : coordonnee) (d : directionDeplacement) (joueur:color) : reponse =
-    match d with
-    | Up -> let case = List.nth (List.nth b (x-1)) y in if case = Path V then goTo b (x-1,y) d joueur else (if case = Empty then deplacer b (i,j) (x-1,y) joueur else (b,false))
-    | Down -> let case = List.nth (List.nth b (x+1)) y in if case = Path V then goTo b (x+1,y) d joueur else (if case = Empty then deplacer b (i,j) (x+1,y) joueur else (b,false))
-    | Right -> let case = List.nth (List.nth b x) (y+1) in if case = Path H then goTo b (x,y+1) d joueur else (if case = Empty then deplacer b (i,j) (x,y+1) joueur else (b,false))
-    | Left -> let case = List.nth (List.nth b x) (y-1) in if case = Path H then goTo b (x,y-1) d joueur else (if case = Empty then deplacer b (i,j) (x,y-1) joueur else (b,false))
-    | Up_right -> let case = List.nth (List.nth b (x-1)) (y+1) in if case = Path DR then goTo b (x-1,y+1) d joueur else (if case = Empty then deplacer b (i,j) (x-1,y+1) joueur else (b,false))
-    | Up_left -> let case = List.nth (List.nth b (x-1)) (y-1) in if case = Path DL then goTo b (x-1,y-1) d joueur else (if case = Empty then deplacer b (i,j) (x-1,y-1) joueur else (b,false))
-    | Down_right -> let case = List.nth (List.nth b (x+1)) (y+1) in if case = Path DL then goTo b (x+1,y+1) d joueur else (if case = Empty then deplacer b (i,j) (x+1,y+1) joueur else (b,false))
-    | Down_left -> let case = List.nth (List.nth b (x+1)) (y-1) in if case = Path DR then goTo b (x+1,y-1) d joueur else (if case = Empty then deplacer b (i,j) (x+1,y-1) joueur else (b,false))
-  in goTo b (i,j) d joueur
+let moveToDirection (game : gameUpdate) ((i,j) : coordinates) (d : directionDeplacement) (color:color) : gameUpdate = 
+  let rec goTo (game : gameUpdate) ((x,y):coordinates) (d : directionDeplacement) (color:color) : gameUpdate =
+    let cooBis dir = coordinatesFromDirections dir (x,y) in
+    let case = getSquare game.board (cooBis d) in if case = Some (pathToHaveFromDirection d) then goTo game (cooBis d) d color else (if case = (Some Empty) then moveToCoordinates game (i,j) (cooBis d) color else notUpdatedGame game)
+  in goTo game (i,j) d color
 
 
-let possibleMoves (board : board) ((i,j) : coordonnee) (joueur : color) (diagonal : bool): directionDeplacement list = 
-  let aux (board : board) ((i,j) : coordonnee) (dir : directionDeplacement) : directionDeplacement list =
+let possibleMoves (game : gameUpdate) ((i,j) : coordinates) (player : color) (diagonal : bool): directionDeplacement list = 
+  let rec aux (game : gameUpdate) ((i,j) : coordinates) (dir : directionDeplacement) : directionDeplacement list =
     if i >= board_size || i < 0 || j >= board_size || j < 0 then []
-    else if List.nth (List.nth board i) j = Empty then [dir] else []
+    else 
+      match (List.nth (List.nth game.board i) j) with
+      | Empty -> [dir]
+      | Path(_) -> aux game (coordinatesFromDirections dir (i,j)) dir
+      | _ -> []
   in
-  match getSquare board (i,j) with
-  | Color(p) when p = joueur ->
-    let normalMoves = (aux board (i,j+1) Right)@(aux board (i,j-1) Left)@(aux board (i-1,j) Up)@(aux board (i+1,j) Down) in
-    if diagonal then normalMoves@(aux board (i+1,j+1) Down_right)@(aux board (i-1,j+1) Up_right)@(aux board (i+1,j-1) Down_left)@(aux board (i-1,j-1) Up_left)
+  match getSquare game.board (i,j) with
+  | Some (Color(p)) when p = player ->
+    let normalMoves = (aux game (i,j+1) Right)@(aux game (i,j-1) Left)@(aux game (i-1,j) Up)@(aux game (i+1,j) Down) in
+    if diagonal then normalMoves@(aux game (i+1,j+1) Down_right)@(aux game (i-1,j+1) Up_right)@(aux game (i+1,j-1) Down_left)@(aux game (i-1,j-1) Up_left)
     else normalMoves
-  | _ -> [] 
+  | _ -> []
 
-
-(*Faire une IA qui joue au pif*)
-(*Faire le changement de phase entre il peut placer où il veut et ensuite deplacer de case en case*)
-(*Faire des tests pour verifier les possibles erreurs*)
-
+(*Faire le changement de phase entre il peut placer où il veut et ensuite move de case en case*)
