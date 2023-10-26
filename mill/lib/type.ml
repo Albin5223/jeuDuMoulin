@@ -31,7 +31,7 @@ type player = {
 type phase =
   | Placing
   | Moving
-  | Flying of player 
+  | Flying of color 
   | BothFlying
 
 (** This type will be returned after each function that alterate the state of the game *)

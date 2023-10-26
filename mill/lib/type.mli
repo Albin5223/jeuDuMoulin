@@ -9,7 +9,7 @@ type player = {
   nbPiecesOnBoard : int;
   bag : coordinates list;
 }
-type phase = Placing | Moving | Flying of player | BothFlying
+type phase = Placing | Moving | Flying of color | BothFlying
 type gameUpdate = {
   board : board;
   mill : bool;
