@@ -1,7 +1,7 @@
 open Type;;
 open Board;;
 
-let initPlayer (c : Type.color) : player = {color = c; bag = []; piecePlaced = 0; nbPiecesOnBoard = 0}
+let initPlayer (c : Type.color) : player = {color = c; bag = []; piecePlaced = 0; nbPiecesOnBoard = 0};;
 
 (** The max amount of pieces that a player can hold *)
 let max_pieces = 9
@@ -11,7 +11,13 @@ let reverseColor (c : Type.color) : Type.color =
   | Type.Black -> Type.White
   | Type.White -> Type.Black
 
-
+let cantMove (player : player) (game : gameUpdate) (diagonal : bool) : bool =
+  let rec aux (player : player) (game : gameUpdate) (bag : coordinates list) (diagonal : bool) : bool =
+    match bag with
+    | [] -> true
+    | (x,y) :: xs -> List.length (possibleMoves game (x,y) player.color diagonal) = 0 && (aux player game xs diagonal)
+  in
+  aux player game player.bag diagonal
 
 let rec playRandomly (player : player) (opponent : player) (game : gameUpdate) (current_phase : phase) : gameUpdate =
   Random.self_init ();
@@ -42,3 +48,6 @@ let rec playRandomly (player : player) (opponent : player) (game : gameUpdate) (
       eliminatePiece game (List.nth (opponent.bag) (Random.int opponent.nbPiecesOnBoard)) opponent.color
     else if not tmp.gameIsChanged then playRandomly player opponent game current_phase (*if we choose coordinates inside a wall or a path*)
     else tmp
+
+let lost (game : gameUpdate) (player : player) (diagonal : bool) (current_phase : phase) : bool =
+  ((current_phase = Moving || current_phase = Flying(reverseColor player.color)) && cantMove player game diagonal) || player.nbPiecesOnBoard <= 2
