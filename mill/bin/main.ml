@@ -2,21 +2,22 @@ open Mill.Board;;
 open Mill.Player;;
 open Mill.Type;;
 
-let current_phase = Placing
+(*let current_phase = Placing*)
 
-let initGame = {board= initBoard; mill = false; player1 = initPlayer Black; player2 = initPlayer White; gameIsChanged = false}
+let initGame = {board= initBoard2; mill = false; player1 = initPlayer Black; player2 = initPlayer White; gameIsChanged = false}
 
-(*
+
 let printBag player = 
   print_endline ("Bag : " ^ if player.color = Black then "Black" else "White");
   let rec aux = function
     | [] -> ()
     | (x,y)::q -> print_string ("(" ^ string_of_int x ^ "," ^ string_of_int y ^ ")"); aux q
   in aux player.bag ; print_endline ""
-*)
+
 
 let game = initGame
 
+(*
 let player1 = initPlayer White
 let player2 = initPlayer Black
 
@@ -68,7 +69,7 @@ let () = prettyPrintBoard game.board
 
 let game = playRandomly game.player2 game.player1 game current_phase 
 let () = prettyPrintBoard game.board;
-
+*)
 (*
 let game = placeStartPiece game (0,0) Black
 let () = prettyPrintBoard game.board
@@ -77,30 +78,29 @@ let () = prettyPrintBoard game.board
 let game = placeStartPiece game (3,2) Black
 let () = prettyPrintBoard game.board
 
-let game = moveToDirection game (3,0) Left White
+
+let game = placeStartPiece game (0,0) Black
 let () = prettyPrintBoard game.board
 let () = printBag game.player1
 
-let game = moveToDirection game (3,2) Left Black
+
+
+let game = moveToDirection game (0,0) Right Black
 let () = prettyPrintBoard game.board
 let () = printBag game.player1
 
-let game = placeStartPiece game (6,6) White
+let game = moveToDirection game (0,6) Right Black
 let () = prettyPrintBoard game.board
-let () = printBag game.player2
+let () = printBag game.player1
 
-let game = moveToCoordinates game (6,6) (0,6) White
+let game = moveToDirection game (0,12) Down_left Black
 let () = prettyPrintBoard game.board
-let () = printBag game.player2
-
-let game = placeStartPiece game (3,6) White
-let game = placeStartPiece game (6,6) White
-let () = prettyPrintBoard game.board
-
-;;if game.mill then print_endline "Moulin" else print_endline "No moulin";;
-
-let game = placeStartPiece game (6,3) White
-let () = prettyPrintBoard game.board
+let () = printBag game.player1
 
 ;;if game.mill then print_endline "Moulin" else print_endline "No moulin";;
 *)
+
+
+let game = moveToDirection game (2,10) Down_left Black
+let () = prettyPrintBoard game.board
+let () = printBag game.player1

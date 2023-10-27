@@ -29,6 +29,11 @@ val moveToCoordinates :
   Type.coordinates -> Type.coordinates -> Type.color -> Type.gameUpdate
 val prettyPrintBoard : Type.board -> unit
 val initBoard : Type.square list list
+val initBoard2 : Type.square list list
+val privateMoveToDirection :
+  Type.gameUpdate ->
+  Type.coordinates ->
+  Type.directionDeplacement -> Type.color -> Type.gameUpdate
 val moveToDirection :
   Type.gameUpdate ->
   Type.coordinates ->
