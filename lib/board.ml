@@ -19,7 +19,7 @@ let printSquare (s : square) =
   | Path(V) -> Format.printf " | "
   | Path(DR) -> Format.printf " / "
   | Path(DL) -> Format.printf " \\ "
-  |_ -> Format.printf "   "
+  | _ -> Format.printf " # "
 
 let printMove (m : directionDeplacement) = 
   match m with
@@ -55,9 +55,13 @@ let getSquare board (i,j) =
   if i >= board_size || i < 0 || j >= board_size || j < 0 then None
   else Some (List.nth (List.nth board (i)) j)
 
+(* TODO : Return an option *)
+(** Function that return the row "i" of the board *)
 let getRow (board:board) (i:int) :square list =
   List.nth board i
 
+(* TODO : Return an option *)
+(** Function that return the column "j" of the board *)
 let getColumn (board:board) (j:int) :square list=
   List.fold_right (fun l acc -> [(List.nth l j)] @acc) board []
 
@@ -167,33 +171,21 @@ let initBoard =
     if x < 7 then (aux2 x 0)::(aux (x+1)) else []  
   in 
   aux 0
-  (*
-  [[Empty;Path(H);Path(H);Empty;Path(H);Path(H);Empty];
-[Path(V);Empty;Path(H);Empty;Path(H);Empty;Path(V)];
-[Path(V);Path(V);Empty;Empty;Empty;Path(V);Path(V)];
-[Empty;Empty;Empty;Wall;Empty;Empty;Empty];
-[Path(V);Path(V);Empty;Empty;Empty;Path(V);Path(V)];
-[Path(V);Empty;Path(H);Empty;Path(H);Empty;Path(V)];
-[Empty;Path(H);Path(H);Empty;Path(H);Path(H);Empty]]
-*)
 
-let initBoard2 =
-  [[Empty;Path(H);Path(H);Path(H);Path(H);Path(H);Empty;Path(H);Path(H);Path(H);Path(H);Path(H);Empty];
-  [Path(V);Wall;Wall;Wall;Wall;Wall;Path(V);Wall;Wall;Wall;Wall;Wall;Path(V)];
-  [Path(V);Wall;Empty;Path(H);Path(H);Path(H);Empty;Path(H);Path(H);Path(H);Empty;Wall;Path(V)];
-  [Path(V);Wall;Path(V);Wall;Wall;Wall;Path(V);Wall;Wall;Wall;Path(V);Wall;Path(V)];
-  [Path(V);Wall;Path(V);Wall;Empty;Path(H);Empty;Path(H);Empty;Wall;Path(V);Wall;Path(V)];
-
-  [Path(V);Wall;Path(V);Wall;Path(V);Wall;Wall;Wall;Path(V);Wall;Path(V);Wall;Path(V)];
-  [Empty;Path(H);Empty;Path(H);Empty;Wall;Wall;Wall;Empty;Path(H);Empty;Path(H);Empty];
-  [Path(V);Wall;Path(V);Wall;Path(V);Wall;Wall;Wall;Path(V);Wall;Path(V);Wall;Path(V)];
-
-  [Path(V);Wall;Path(V);Wall;Empty;Path(H);Empty;Path(H);Empty;Wall;Path(V);Wall;Path(V)];
-  [Path(V);Wall;Path(V);Wall;Wall;Wall;Path(V);Wall;Wall;Wall;Path(V);Wall;Path(V)];
-  [Path(V);Wall;Empty;Path(H);Path(H);Path(H);Empty;Path(H);Path(H);Path(H);Empty;Wall;Path(V)];
-  [Path(V);Wall;Wall;Wall;Wall;Wall;Path(V);Wall;Wall;Wall;Wall;Wall;Path(V)];
-  [Empty;Path(H);Path(H);Path(H);Path(H);Path(H);Empty;Path(H);Path(H);Path(H);Path(H);Path(H);Empty]]
-
+(** Function that init a board with only the up-left quarter of it *)
+let initBoardQuarter (quarter : board) : board =
+  let rec fullBoard (b : board) (newBoard : board) =
+    let rec halfRow (row : square list) (newRow : square list) =
+      match row with
+      | [] -> []
+      | x::[] -> newRow@[x]@(List.rev newRow)
+      | x::xs -> halfRow xs (newRow@[x])
+    in
+    match b with
+    | [] -> []
+    | row::[] -> (newBoard@[(halfRow row [])]@(List.rev newBoard))
+    | row::rs -> fullBoard rs (newBoard@[halfRow row []])
+  in fullBoard quarter []
 
 (** Function that move a piece from the coordinate (i,j) to a certain direction (DO NOT PUT THIS IN THE ".MLI") *)
 let privateMoveToDirection (game : gameUpdate) ((i,j) : coordinates) (d : directionDeplacement) (color:color) : gameUpdate = 
@@ -222,6 +214,3 @@ let possibleMoves (game : gameUpdate) ((i,j) : coordinates) (player : color) (di
     if diagonal then normalMoves@(aux game (i+1,j+1) Down_right)@(aux game (i-1,j+1) Up_right)@(aux game (i+1,j-1) Down_left)@(aux game (i-1,j-1) Up_left)
     else normalMoves
   | _ -> []
-
-
-(*Faire le changement de phase entre il peut placer où il veut et ensuite move de case en case*)

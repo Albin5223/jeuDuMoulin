@@ -5,7 +5,20 @@ open Mill.Generator;;
 
 let current_phase = Placing
 
-let initGame = {board= initBoard2; mill = false; player1 = initPlayer Black; player2 = initPlayer White; gameIsChanged = false}
+let quarter =
+  [
+    [Empty; Path(H); Path(H); Path(H); Path(H); Path(H); Empty];
+    [Path(V); Wall; Wall; Wall; Wall; Wall; Path(V)];
+    [Path(V); Wall; Empty; Path(H); Path(H);Path(H);Empty];
+    [Path(V); Wall; Path(V); Wall; Wall; Wall; Path(V)];
+    [Path(V); Wall; Path(V); Wall; Empty; Path(H); Empty];
+    [Path(V); Wall; Path(V); Wall; Path(V); Wall; Wall];
+    [Empty; Path(H); Empty; Path(H); Empty; Wall; Wall]
+  ]
+
+let gameboard = initBoardQuarter quarter
+
+let initGame = {board= gameboard; mill = false; player1 = initPlayer Black; player2 = initPlayer White; gameIsChanged = false}
 
 (*
 let printBag player = 
