@@ -6,8 +6,11 @@ let board_size = 13
 (** Represent the maximum amount of pieces that each player can put on board *)
 let maxPiecesPerPlayer = 9
 
+(** Represent the number of pieces that you have to align to get a mill *)
+let nbToGetMill = 3
 
-let notUpdatedGame game = {board = game.board; mill = game.mill; player1 = game.player1; player2 = game.player2; gameIsChanged = false}
+
+let notUpdatedGame game = {board = game.board; mill = false; player1 = game.player1; player2 = game.player2; gameIsChanged = false}
 
 (** Function that print a board square *)
 let printSquare (s : square) = 
@@ -23,14 +26,14 @@ let printSquare (s : square) =
 
 let printMove (m : directionDeplacement) = 
   match m with
-  | Up -> Format.printf "Up"
-  | Down -> Format.printf "Down"
-  | Right -> Format.printf "Right"
-  | Left -> Format.printf "Left"
-  | Up_right -> Format.printf "Up_right"
-  | Up_left -> Format.printf "Up_left"
-  | Down_right -> Format.printf "Down_right"
-  | Down_left -> Format.printf "Down_left"
+  | Up -> print_string "Up\n"
+  | Down -> print_string "Down\n"
+  | Right -> print_string "Right\n"
+  | Left -> print_string "Left\n"
+  | Up_right -> print_string "Up_right\n"
+  | Up_left -> print_string "Up_left\n"
+  | Down_right -> print_string "Down_right\n"
+  | Down_left -> print_string "Down_left\n"
 
 (** Returns the coordinates from some coordinates and its direction *)
 let coordinatesFromDirections d (i,j) =
@@ -65,26 +68,34 @@ let getRow (board:board) (i:int) :square list =
 let getColumn (board:board) (j:int) :square list=
   List.fold_right (fun l acc -> [(List.nth l j)] @acc) board []
 
-let checkMillFromList subBoard color : int =
-  List.fold_right (fun a b -> if a = Color(color) then b+1 else if a = Wall then 0 else b) subBoard 0
+let coordinateFromDirection (board : board) ((i,j) : coordinates) (d : directionDeplacement) : coordinates option =
+  let rec goTo (board : board) ((x,y):coordinates) (d : directionDeplacement) : coordinates option =
+    let cooBis  = coordinatesFromDirections d (x,y) in
+    let case = getSquare board cooBis in 
+    if case = Some (pathToHaveFromDirection d)
+      then goTo board cooBis d
+    else 
+      match case with
+      | Some Empty | Some (Color _) -> Some cooBis
+      | _ -> None
+  in if getSquare board (coordinatesFromDirections d (i,j)) = Some (pathToHaveFromDirection d) then goTo board (i,j) d else None
 
-let checkMillInMid subBoard j color = 
-  let rec aux subBoard distance count=
-    match subBoard with 
-    |[] -> count
-    |Wall::_ when distance = 0-> count
-    |x::xs when distance = 0 -> if x = Color(color) then aux xs distance (count+1) else aux xs distance count
-    |_::xs -> aux xs (distance-1) count
-  in if j<board_size/2 then aux subBoard 0 0 else aux subBoard 4 0
+(** Function that check if there is a mill from a certain position(i,j) *)
+let checkMillFromPosition (board:board) ((i,j):coordinates) (color:color) : bool = 
+  match getSquare board (i,j) with
+  | Some (Color(c)) when c = color -> 
+    let rec countFromD (x,y) d =
+      match coordinateFromDirection board (x,y) d with
+      | Some (a,b) -> if getSquare board (a,b) = Some (Color(color)) then 1 + countFromD (a,b) d else 0
+      | _ -> 0
+    in
+    let count_row = (countFromD (i,j) Right) + (countFromD (i,j) Left) in
+    let count_col = (countFromD (i,j) Up) + (countFromD (i,j) Down) in
+    let count_diag1 = (countFromD (i,j) Up_right) + (countFromD (i,j) Down_left) in
+    let count_diag2 = (countFromD (i,j) Up_left) + (countFromD (i,j) Down_right) in
+    1 + max (max count_row count_col) (max count_diag1 count_diag2) >= nbToGetMill
+  | _ -> false
 
-
-(**Function that check if there is a mill from a certain position(i,j)**)
-  (*A FINIIIIR*)
-let checkMillFromPosition (board:board) ((i,j):coordinates) color : bool = 
-  match i,j with 
-  |(3,_) -> (checkMillFromList (getColumn board j) color = 3) || (checkMillInMid (getRow board i) j color = 3)
-  |(_,3) -> (checkMillFromList (getRow board i) color = 3) || (checkMillInMid (getColumn board j) i color = 3)
-  |_ ->(checkMillFromList (getRow board i) color = 3) || (checkMillFromList (getColumn board j) color = 3)
 
 (** A map that apply the function "f" to the square at the coordinate (i,j) of the board *)
 let boardMap (f:square -> square) (board:board) ((i,j):coordinates) =
@@ -187,16 +198,12 @@ let initBoardQuarter (quarter : board) : board =
     | row::rs -> fullBoard rs (newBoard@[halfRow row []])
   in fullBoard quarter []
 
-(** Function that move a piece from the coordinate (i,j) to a certain direction (DO NOT PUT THIS IN THE ".MLI") *)
-let privateMoveToDirection (game : gameUpdate) ((i,j) : coordinates) (d : directionDeplacement) (color:color) : gameUpdate = 
+(** Function that move a piece from the coordinate (i,j) to a certain direction only if there is a Path in this direction *)
+let moveToDirection (game : gameUpdate) ((i,j) : coordinates) (d : directionDeplacement) (color:color) : gameUpdate = 
   let rec goTo (game : gameUpdate) ((x,y):coordinates) (d : directionDeplacement) (color:color) : gameUpdate =
     let cooBis dir = coordinatesFromDirections dir (x,y) in
     let case = getSquare game.board (cooBis d) in if case = Some (pathToHaveFromDirection d) then goTo game (cooBis d) d color else (if case = (Some Empty) then moveToCoordinates game (i,j) (cooBis d) color else notUpdatedGame game)
-  in goTo game (i,j) d color
-
-(** Function that move a piece from the coordinate (i,j) to a certain direction only if there is a Path in this direction *)
-let moveToDirection (game : gameUpdate) ((i,j) : coordinates) (d : directionDeplacement) (color:color) : gameUpdate = 
-  if getSquare game.board (coordinatesFromDirections d (i,j)) = Some (pathToHaveFromDirection d) then privateMoveToDirection game (i,j) d color else notUpdatedGame game
+  in if getSquare game.board (coordinatesFromDirections d (i,j)) = Some (pathToHaveFromDirection d) then goTo game (i,j) d color else notUpdatedGame game
 
 
 let possibleMoves (game : gameUpdate) ((i,j) : coordinates) (player : color) (diagonal : bool): directionDeplacement list = 

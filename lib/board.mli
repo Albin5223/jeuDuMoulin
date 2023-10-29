@@ -1,5 +1,6 @@
 val board_size : int
 val maxPiecesPerPlayer : int
+val nbToGetMill : int
 val notUpdatedGame : Type.gameUpdate -> Type.gameUpdate
 val printSquare : Type.square -> unit
 val printMove : Type.directionDeplacement -> unit
@@ -9,9 +10,10 @@ val pathToHaveFromDirection : Type.directionDeplacement -> Type.square
 val getSquare : 'a list list -> int * int -> 'a option
 val getRow : Type.board -> int -> Type.square list
 val getColumn : Type.board -> int -> Type.square list
-val checkMillFromList : Type.square list -> Type.color -> int
-val checkMillInMid : Type.square list -> int -> Type.color -> int
-val checkMillFromPosition :
+val coordinateFromDirection :
+  Type.board ->
+  Type.coordinates -> Type.directionDeplacement -> Type.coordinates option
+val checkMillFromPosition2 :
   Type.board -> Type.coordinates -> Type.color -> bool
 val boardMap :
   (Type.square -> Type.square) ->
@@ -30,10 +32,6 @@ val moveToCoordinates :
 val prettyPrintBoard : Type.board -> unit
 val initBoard : Type.square list list
 val initBoardQuarter : Type.board -> Type.board
-val privateMoveToDirection :
-  Type.gameUpdate ->
-  Type.coordinates ->
-  Type.directionDeplacement -> Type.color -> Type.gameUpdate
 val moveToDirection :
   Type.gameUpdate ->
   Type.coordinates ->
