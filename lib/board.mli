@@ -13,7 +13,7 @@ val getColumn : Type.board -> int -> Type.square list
 val coordinateFromDirection :
   Type.board ->
   Type.coordinates -> Type.directionDeplacement -> Type.coordinates option
-val checkMillFromPosition2 :
+val checkMillFromPosition :
   Type.board -> Type.coordinates -> Type.color -> bool
 val boardMap :
   (Type.square -> Type.square) ->
