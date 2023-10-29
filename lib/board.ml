@@ -22,7 +22,7 @@ let printSquare (s : square) =
   | Path(V) -> Format.printf " | "
   | Path(DR) -> Format.printf " / "
   | Path(DL) -> Format.printf " \\ "
-  | _ -> Format.printf " # "
+  | _ -> Format.printf "   "
 
 let printMove (m : directionDeplacement) = 
   match m with
