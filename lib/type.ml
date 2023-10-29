@@ -36,6 +36,15 @@ type phase =
 
 (** This type will be returned after each function that alterate the state of the game *)
 type gameUpdate = {board : board; mill : bool; player1 : player; player2 : player; gameIsChanged : bool}
+(*player1 is always Black and player2 is always White  *)
+
+(**This function return a player who has the same color that the color in argument*)
+let getPlayer (gameUpdate:gameUpdate)(color:color):player =
+  match color with
+  |Black -> gameUpdate.player1
+  |White ->  gameUpdate.player2
+
+
 
 (** Will be returned after a move, and will let us know if the move produce a mill or not *)
 type gotMill = board * bool
@@ -51,3 +60,23 @@ type directionDeplacement =
   | Down_right
   | Down_left
 
+let prettyPrintPhase p = 
+  match p with 
+  | Placing -> print_string "Phase de placement"
+  | Moving -> print_string "Phase de deplacement"
+  | Flying (_) -> print_string "Phase de placement"
+  | BothFlying -> print_string "Phase de vol"
+
+
+let reverseColor (c : color) : color =
+  match c with
+  |Black ->White
+  |White -> Black
+  
+let getOpponent gameUpdate color =
+  getPlayer gameUpdate (reverseColor color)
+
+let afficheVainqueur color = 
+  match color with 
+  |Black -> print_endline "Le vainqueur est BLACK"
+  |White -> print_endline "Le vainqueur est WHITE"

@@ -35,6 +35,9 @@ let printMove (m : directionDeplacement) =
   | Down_right -> print_string "Down_right\n"
   | Down_left -> print_string "Down_left\n"
 
+let prettyPrintListDirection l =
+  l|>List.iter(fun a -> printMove a )
+
 (** Returns the coordinates from some coordinates and its direction *)
 let coordinatesFromDirections d (i,j) =
   match d with

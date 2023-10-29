@@ -1,8 +1,8 @@
-open Mill.Board;;
-open Mill.Player;;
-open Mill.Type;;
+open Mill.Game;;
 open Mill.Generator;;
+open Mill.Board;;
 
+<<<<<<< bin/main.ml
 let current_phase = Placing
 
 let quarter =
@@ -113,9 +113,7 @@ let () = printBag game.player1
 
 ;;if game.mill then print_endline "Moulin" else print_endline "No moulin";;
 *)
+=======
+>>>>>>> bin/main.ml
 
-(*
-let game = moveToDirection game (2,10) Down_left Black
-let () = prettyPrintBoard game.board
-let () = printBag game.player1
-*)
+let () = let game = gameRandomly randomAleaWithSeed in prettyPrintBoard game.board
