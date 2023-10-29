@@ -3,6 +3,7 @@ val maxPiecesPerPlayer : int
 val notUpdatedGame : Type.gameUpdate -> Type.gameUpdate
 val printSquare : Type.square -> unit
 val printMove : Type.directionDeplacement -> unit
+val prettyPrintListDirection : Type.directionDeplacement list -> unit
 val coordinatesFromDirections :
   Type.directionDeplacement -> int * int -> int * int
 val pathToHaveFromDirection : Type.directionDeplacement -> Type.square
