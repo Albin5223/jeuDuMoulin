@@ -185,16 +185,17 @@ let initBoard =
 
 (** Function that init a board with only the up-left quarter of it *)
 let initBoardQuarter (quarter : board) : board =
+  let reverseDiagonal = (fun el -> match el with | Path(DR) -> Path(DL) | Path(DL) -> Path(DR) | _ -> el) in
   let rec fullBoard (b : board) (newBoard : board) =
     let rec halfRow (row : square list) (newRow : square list) =
       match row with
       | [] -> []
-      | x::[] -> newRow@[x]@(List.rev newRow)
+      | x::[] -> newRow@[x]@(List.rev (List.map reverseDiagonal newRow))
       | x::xs -> halfRow xs (newRow@[x])
     in
     match b with
     | [] -> []
-    | row::[] -> (newBoard@[(halfRow row [])]@(List.rev newBoard))
+    | row::[] -> (newBoard@[(halfRow row [])]@(List.rev (List.map (fun line -> if (List.exists (fun x -> match x with | Path(DR) | Path(DL) -> true | _ -> false) line) then List.map reverseDiagonal line else line) newBoard)))
     | row::rs -> fullBoard rs (newBoard@[halfRow row []])
   in fullBoard quarter []
 
