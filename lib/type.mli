@@ -17,6 +17,7 @@ type gameUpdate = {
   player2 : player;
   gameIsChanged : bool;
 }
+val getPlayer : gameUpdate -> color -> player
 type gotMill = board * bool
 type directionDeplacement =
     Up
@@ -27,3 +28,13 @@ type directionDeplacement =
   | Up_left
   | Down_right
   | Down_left
+val prettyPrintPhase : phase -> unit
+val reverseColor : color -> color
+val getOpponent : gameUpdate -> color -> player
+val afficheTourInfo : color -> phase -> unit
+val afficheVainqueur : color -> unit
+val printMove : directionDeplacement -> unit
+val prettyPrintListDirection : directionDeplacement list -> unit
+val printCord : int * int -> unit
+val printSquare : square -> unit
+val prettyPrintBoard : board -> unit
