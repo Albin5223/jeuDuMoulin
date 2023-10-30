@@ -18,13 +18,13 @@ let gameboard = initBoardQuarter quarter
 
 let gameRandomly seed =
   let rec play (game :gameUpdate) (player:color):gameUpdate =
-    
+    let () = prettyPrintBoard game.board in
     if (getPlayer game player).piecePlaced<maxPiecesPerPlayer
       then  let newGameUpdate = playRandomly seed player game Placing in play newGameUpdate (reverseColor player)
     else
 
       if (getPlayer game player).nbPiecesOnBoard <= 3
-        then if lost game (getPlayer game player) false BothFlying then let () = afficheVainqueur (reverseColor player) in game 
+        then if lost game (getPlayer game player) false (Flying(player)) then let () = afficheVainqueur (reverseColor player) in game 
           else let newGameUpdate = playRandomly seed player game BothFlying  in play newGameUpdate (reverseColor player)
       else
         if lost game (getPlayer game player) false Moving then let () = afficheVainqueur (reverseColor player) in game

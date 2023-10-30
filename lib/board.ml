@@ -140,10 +140,7 @@ let moveToCoordinates (game : gameUpdate) ((i1,j1):coordinates) ((i2,j2):coordin
       then {board = newBoard;mill = isMill; player1 = newPlayer; player2 = game.player2;gameIsChanged = true}
       else {board = newBoard;mill = isMill; player1 = game.player1; player2 = newPlayer;gameIsChanged = true}
   else notUpdatedGame game 
-
-(** Print the board in the shell *)
-let prettyPrintBoard (b : board) : unit = (List.iter (fun l -> List.iter (printSquare) l; Format.printf "@.") b) ; print_endline ""
-
+  
 (** Init a start board *)
 let initBoard =  
   

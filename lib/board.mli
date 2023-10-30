@@ -23,11 +23,10 @@ val placeStartPiece :
 val removeFromBoard :
   Type.board -> Type.coordinates -> Type.color -> Type.board
 val eliminatePiece :
-  Type.gameUpdate -> int * int -> Type.color -> Type.gameUpdate
+  Type.gameUpdate -> Type.coordinates -> Type.color -> Type.gameUpdate
 val moveToCoordinates :
   Type.gameUpdate ->
   Type.coordinates -> Type.coordinates -> Type.color -> Type.gameUpdate
-val prettyPrintBoard : Type.board -> unit
 val initBoard : Type.square list list
 val initBoardQuarter : Type.board -> Type.board
 val moveToDirection :

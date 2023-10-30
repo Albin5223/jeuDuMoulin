@@ -117,3 +117,6 @@ let printSquare (s : square) =
   | Path(DL) -> Format.printf " \\ "
   | _ -> Format.printf "   "
   
+
+(** Print the board in the shell *)
+let prettyPrintBoard (b : board) : unit = (List.iter (fun l -> List.iter (printSquare) l; Format.printf "@.") b) ; print_endline ""

@@ -37,3 +37,4 @@ val printMove : directionDeplacement -> unit
 val prettyPrintListDirection : directionDeplacement list -> unit
 val printCord : int * int -> unit
 val printSquare : square -> unit
+val prettyPrintBoard : board -> unit
