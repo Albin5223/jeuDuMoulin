@@ -1,6 +1,6 @@
 open Mill.Game;;
 open Mill.Generator;;
-open Mill.Board;;
+open Mill.Type;;
 
 
-let () = let game = gameRandomly randomAleaWithSeed in prettyPrintBoard game.board
+let () = let game = gameRandomly randomAlea in prettyPrintBoard game.board
