@@ -21,8 +21,10 @@ let rec playRandomly (random) (player:color) (game : gameUpdate) (current_phase 
     let j =  random board_size in (*print_string ("I , J -> "^string_of_int i ^"; "^string_of_int j^"\n");*)
     let tmp = placeStartPiece game (i,j) player in (*(if tmp.mill then print_string ("MILLLLL"^ string_of_int (getPlayer tmp player).nbPiecesOnBoard^(string_of_int (getOpponent tmp player).nbPiecesOnBoard) ^"\n") else print_string "No milll \n");*)
     if tmp.mill
-      then eliminatePiece game (List.nth ((getOpponent tmp player).bag) (random (getOpponent tmp player).nbPiecesOnBoard)) (getOpponent tmp player).color
-    else if not tmp.gameIsChanged then playRandomly random player game current_phase (*if we choose coordinates where a piece is already here or a path or a wall*)
+      then let () = print_string "--------------------------------------\n" in let () = prettyPrintBoard tmp.board in let () = afficheTourInfo player current_phase 
+    in let pieceCC = (List.nth ((getOpponent tmp player).bag) (random (getOpponent tmp player).nbPiecesOnBoard)) in let () = printCord pieceCC 
+    in let newgame = eliminatePiece tmp pieceCC (getOpponent tmp player).color in let () = prettyPrintBoard newgame.board in newgame
+      else if not tmp.gameIsChanged then playRandomly random player game current_phase (*if we choose coordinates where a piece is already here or a path or a wall*)
     else tmp
 
   else if current_phase = Moving then (*either the bot can just move or the opponent is flying but not the bot*)
@@ -32,17 +34,20 @@ let rec playRandomly (random) (player:color) (game : gameUpdate) (current_phase 
     else
       let tmp = moveToDirection game (x,y) (List.nth movesPossible (random (List.length movesPossible))) player in
       if tmp.mill 
-        then eliminatePiece game (List.nth ((getOpponent tmp player).bag) (random (getOpponent tmp player).nbPiecesOnBoard)) (getOpponent tmp player).color
+        then let () = print_string "--------------------------------------\n" in let () = prettyPrintBoard tmp.board in let () = afficheTourInfo player current_phase 
+    in let pieceCC = (List.nth ((getOpponent tmp player).bag) (random (getOpponent tmp player).nbPiecesOnBoard)) in let () = printCord pieceCC 
+    in let newgame = eliminatePiece tmp pieceCC (getOpponent tmp player).color in let () = prettyPrintBoard newgame.board in newgame
       else tmp
 
   else (*this means either the bot is flying or both players are flying*)
     let i = random board_size in
     let j = random board_size in
     let tmp = moveToCoordinates game ((List.nth ((getPlayer game player).bag) (random (getPlayer game player).nbPiecesOnBoard))) (i,j) player in
-    if tmp.mill then
-      eliminatePiece game (List.nth ((getOpponent tmp player).bag) (random (getOpponent tmp player).nbPiecesOnBoard)) (getOpponent tmp player).color
-    else if not tmp.gameIsChanged then playRandomly random player game current_phase (*if we choose coordinates inside a wall or a path*)
-    else tmp
+    if tmp.mill 
+      then let () = print_string "--------------------------------------\n" in let () = prettyPrintBoard tmp.board in let () = afficheTourInfo player current_phase 
+    in let pieceCC = (List.nth ((getOpponent tmp player).bag) (random (getOpponent tmp player).nbPiecesOnBoard)) in let () = printCord pieceCC 
+    in let newgame = eliminatePiece tmp pieceCC (getOpponent tmp player).color in let () = prettyPrintBoard newgame.board in newgame
+      else tmp
 
 let lost (game : gameUpdate) (player : player) (diagonal : bool) (current_phase : phase) : bool =
   ((current_phase = Moving || current_phase = Flying(reverseColor player.color)) && cantMove player game diagonal) || (player.nbPiecesOnBoard <= 2 && player.piecePlaced=9)

@@ -62,10 +62,10 @@ type directionDeplacement =
 
 let prettyPrintPhase p = 
   match p with 
-  | Placing -> print_string "Phase de placement"
-  | Moving -> print_string "Phase de deplacement"
-  | Flying (_) -> print_string "Phase de placement"
-  | BothFlying -> print_string "Phase de vol"
+  | Placing -> print_string "Phase de placement\n"
+  | Moving -> print_string "Phase de deplacement\n"
+  | Flying (_) -> print_string "Phase de placement\n"
+  | BothFlying -> print_string "Phase de vol\n"
 
 
 let reverseColor (c : color) : color =
@@ -76,7 +76,44 @@ let reverseColor (c : color) : color =
 let getOpponent gameUpdate color =
   getPlayer gameUpdate (reverseColor color)
 
+
+let afficheTourInfo color phase = 
+  match color with 
+  |Black -> print_endline "Le tour de BLACK"; prettyPrintPhase phase
+  |White -> print_endline "Le tour de  WHITE";prettyPrintPhase phase
+
 let afficheVainqueur color = 
   match color with 
   |Black -> print_endline "Le vainqueur est BLACK"
   |White -> print_endline "Le vainqueur est WHITE"
+
+let printMove (m : directionDeplacement) = 
+  match m with
+  | Up -> print_string "Up\n"
+  | Down -> print_string "Down\n"
+  | Right -> print_string "Right\n"
+  | Left -> print_string "Left\n"
+  | Up_right -> print_string "Up_right\n"
+  | Up_left -> print_string "Up_left\n"
+  | Down_right -> print_string "Down_right\n"
+  | Down_left -> print_string "Down_left\n"
+
+let prettyPrintListDirection l =
+  l|>List.iter(fun a -> printMove a )
+
+let printCord (x,y) = 
+  print_string ("x :"^(string_of_int x)^" y :"^(string_of_int y)^"\n")
+
+
+(** Function that print a board square *)
+let printSquare (s : square) = 
+  match s with
+  | Color(White) -> Format.printf "{W}"
+  | Color(Black) -> Format.printf "{B}"
+  | Empty -> Format.printf "{ }"
+  | Path(H) -> Format.printf "---"
+  | Path(V) -> Format.printf " | "
+  | Path(DR) -> Format.printf " / "
+  | Path(DL) -> Format.printf " \\ "
+  | _ -> Format.printf "   "
+  

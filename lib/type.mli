@@ -31,4 +31,9 @@ type directionDeplacement =
 val prettyPrintPhase : phase -> unit
 val reverseColor : color -> color
 val getOpponent : gameUpdate -> color -> player
+val afficheTourInfo : color -> phase -> unit
 val afficheVainqueur : color -> unit
+val printMove : directionDeplacement -> unit
+val prettyPrintListDirection : directionDeplacement list -> unit
+val printCord : int * int -> unit
+val printSquare : square -> unit

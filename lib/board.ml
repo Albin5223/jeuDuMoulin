@@ -12,31 +12,8 @@ let nbToGetMill = 3
 
 let notUpdatedGame game = {board = game.board; mill = false; player1 = game.player1; player2 = game.player2; gameIsChanged = false}
 
-(** Function that print a board square *)
-let printSquare (s : square) = 
-  match s with
-  | Color(White) -> Format.printf "{W}"
-  | Color(Black) -> Format.printf "{B}"
-  | Empty -> Format.printf "{ }"
-  | Path(H) -> Format.printf "---"
-  | Path(V) -> Format.printf " | "
-  | Path(DR) -> Format.printf " / "
-  | Path(DL) -> Format.printf " \\ "
-  | _ -> Format.printf "   "
 
-let printMove (m : directionDeplacement) = 
-  match m with
-  | Up -> print_string "Up\n"
-  | Down -> print_string "Down\n"
-  | Right -> print_string "Right\n"
-  | Left -> print_string "Left\n"
-  | Up_right -> print_string "Up_right\n"
-  | Up_left -> print_string "Up_left\n"
-  | Down_right -> print_string "Down_right\n"
-  | Down_left -> print_string "Down_left\n"
 
-let prettyPrintListDirection l =
-  l|>List.iter(fun a -> printMove a )
 
 (** Returns the coordinates from some coordinates and its direction *)
 let coordinatesFromDirections d (i,j) =
@@ -137,7 +114,7 @@ let eliminatePiece (game : gameUpdate) (i,j) color : gameUpdate =
   if (getSquare game.board (i,j) != Some (Color color))  (* If the piece does not exist in (i,j), we do nothing *)
     then notUpdatedGame game
     else  (* Else, we remove the piece and apply the changes for the bag of the concerned player *)
-      let concernedPlayer = if game.player1.color = color then game.player1 else game.player2 in
+      let concernedPlayer = getPlayer game color in
       let newBag = (List.filter (fun (x,y) -> (x,y) <> (i,j)) concernedPlayer.bag) in
       let newBoard = removeFromBoard game.board (i,j) color in
       let updatedPlayer = {color = concernedPlayer.color; piecePlaced = concernedPlayer.piecePlaced; nbPiecesOnBoard = concernedPlayer.nbPiecesOnBoard - 1; bag = newBag} in
