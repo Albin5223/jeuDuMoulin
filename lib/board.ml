@@ -110,17 +110,17 @@ let removeFromBoard (board : board) ((i,j) : coordinates) color : board =
   boardMap (fun x -> if x = Color(color) then Empty else x) board (i,j)
 
 (** This function eliminate a piece from the board and returns the new game state *)
-let eliminatePiece (game : gameUpdate) (i,j) color : gameUpdate =
-  if (getSquare game.board (i,j) != Some (Color color))  (* If the piece does not exist in (i,j), we do nothing *)
-    then notUpdatedGame game
-    else  (* Else, we remove the piece and apply the changes for the bag of the concerned player *)
-      let concernedPlayer = getPlayer game color in
-      let newBag = (List.filter (fun (x,y) -> (x,y) <> (i,j)) concernedPlayer.bag) in
-      let newBoard = removeFromBoard game.board (i,j) color in
-      let updatedPlayer = {color = concernedPlayer.color; piecePlaced = concernedPlayer.piecePlaced; nbPiecesOnBoard = concernedPlayer.nbPiecesOnBoard - 1; bag = newBag} in
-      if color = game.player1.color
-        then {board = newBoard;mill = false; player1 = updatedPlayer;player2 = game.player2;gameIsChanged=true}
-        else {board = newBoard;mill = false; player1 = game.player1;player2 = updatedPlayer;gameIsChanged=true}
+let eliminatePiece (game : gameUpdate) ((i,j) : coordinates) (color : color) : gameUpdate =
+  match getSquare game.board (i,j) with
+  | Some (Color c) when c = color -> (* We remove the piece and apply the changes for the bag of the concerned player *)
+    let concernedPlayer = getPlayer game c in
+    let newBag = (List.filter (fun (x,y) -> (x,y) <> (i,j)) concernedPlayer.bag) in
+    let newBoard = removeFromBoard game.board (i,j) c in
+    let updatedPlayer = {color = concernedPlayer.color; piecePlaced = concernedPlayer.piecePlaced; nbPiecesOnBoard = concernedPlayer.nbPiecesOnBoard - 1; bag = newBag} in
+    if c = game.player1.color
+      then {board = newBoard;mill = false; player1 = updatedPlayer;player2 = game.player2;gameIsChanged=true}
+      else {board = newBoard;mill = false; player1 = game.player1;player2 = updatedPlayer;gameIsChanged=true}
+  | _ -> notUpdatedGame game (* If the piece doesn't exist in (i,j), we do nothing *)
 
 (**
   This function moves a piece from (i1,j1) to (i2,j2)
