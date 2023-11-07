@@ -5,7 +5,8 @@ val notUpdatedGame : Type.gameUpdate -> Type.gameUpdate
 val coordinatesFromDirections :
   Type.directionDeplacement -> int * int -> int * int
 val pathToHaveFromDirection : Type.directionDeplacement -> Type.square
-val getSquare : 'a list list -> int * int -> 'a option
+val getSquare : Type.board -> int * int -> Type.square option
+val getSquareRow : Type.square list -> int -> Type.square option
 val getRow : Type.board -> int -> Type.square list
 val getColumn : Type.board -> int -> Type.square list
 val coordinateFromDirection :
@@ -29,6 +30,11 @@ val moveToCoordinates :
   Type.coordinates -> Type.coordinates -> Type.color -> Type.gameUpdate
 val initBoard : Type.square list list
 val initBoardQuarter : Type.board -> Type.board
+val test3SquaresRow :
+  Type.board -> int -> int -> int -> int -> int -> int -> bool
+val auxInitBoard :
+  int -> int -> int -> int -> bool -> Type.board -> Type.board
+val initBoard2 : int -> int -> int -> bool -> Type.board
 val moveToDirection :
   Type.gameUpdate ->
   Type.coordinates ->
