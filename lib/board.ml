@@ -1,4 +1,5 @@
-open Type
+open Type;;
+
 
 (** This represent the size of the board **)
 let board_size = 13
@@ -34,9 +35,15 @@ let pathToHaveFromDirection d =
   | Up_right | Down_left -> Path(DR)
   | Up_left | Down_right -> Path(DL)
 
-let getSquare board (i,j) = 
-  if i >= board_size || i < 0 || j >= board_size || j < 0 then None
+let getSquare (board : board) (i,j) : square option = 
+  if List.length board = 0 then None
+  else if i >= List.length board || i < 0 || j >= (List.length (List.nth board 0)) || j < 0 then None(*of course we know that the board is a square*)
   else Some (List.nth (List.nth board (i)) j)
+
+let getSquareRow (row : square list) (j : int) : square option =
+  if List.length row = 0 then None
+  else if j >= (List.length row) || j < 0 then None
+  else Some (List.nth row j)
 
 (* TODO : Return an option *)
 (** Function that return the row "i" of the board *)
@@ -143,7 +150,6 @@ let moveToCoordinates (game : gameUpdate) ((i1,j1):coordinates) ((i2,j2):coordin
   
 (** Init a start board *)
 let initBoard =  
-  
   let rec aux x =
     let rec aux2 i j =
       match (i,j) with
@@ -174,7 +180,51 @@ let initBoardQuarter (quarter : board) : board =
     | [] -> []
     | row::[] -> (newBoard@[(halfRow row [])]@(List.rev (List.map (fun line -> if (List.exists (fun x -> match x with | Path(DR) | Path(DL) -> true | _ -> false) line) then List.map reverseDiagonal line else line) newBoard)))
     | row::rs -> fullBoard rs (newBoard@[halfRow row []])
-  in fullBoard quarter []
+  in
+  fullBoard quarter []
+
+(*function who tests the maximum of nodes a column can have in order to tell if the point (i,j) can be a path or not*)
+let rec test3SquaresRow (board : board) (width : int) (height : int) (i : int) (j : int) (nNodes : int) (nbSquares : int) : bool =
+  if (nNodes = 3 && j != width/2) then false(*if we already saw 3 nodes and we're not in the middle then we're stopping right here because if we're in the middle we put path(V) everywhere except for the center*)
+  else if i < 0 then true(*if we reach the end of the board this means we didn't see enough nodes so we can put another path in direction of this last node*)
+  else if (List.nth (List.nth board i) j) = Empty then test3SquaresRow board  width height (i-1) j (nNodes+1) nbSquares(*if we see a node then we increment the nNodes for the rest of the board*)
+  else test3SquaresRow board width height (i-1) j nNodes nbSquares
+
+let rec auxInitBoard (width : int) (height : int) (i : int) (nbSquares : int) (diagonal : bool) (acc : board) : board =
+  if (i > width) then acc(*base case of the function*)
+  else
+    (*function that takes width height and a number of squares in argument and returns all the coordinates of the points that board should have, so of course this coordinates form the shape of a square*)
+    let rec squareCoordinates (w : int) (h : int) (start : int) (nbSquares : int) (acc2 : coordinates list) : coordinates list =
+      if (nbSquares <= 0) then acc2
+      else if (width/2 = start) then acc2@[(start,start)]
+      else squareCoordinates (w-4) (h-4) (start+2) (nbSquares-1) (acc2@[(start,start);(start,start+w/2);(start,start+w);(start+h/2,start);(start+h/2,start+w);(start+h,start);(start+h,start+w/2);(start+h,start+w)])
+    in
+    let squarecoord = squareCoordinates width height 0 nbSquares [] in
+    (*function who creates recursively row in the board with the coordinates of the nodes and connect them with some paths*)
+    let rec createRow (j : int) (acc2 : square list) (nbNodes : int) : square list =
+      if (j > width) then acc2
+      else if (List.mem (i,j) squarecoord) then createRow (j+1) (acc2@[Empty]) (nbNodes+1)
+      else if ((nbSquares -1)*2 < i && i < width-((nbSquares-1)*2)) && ((nbSquares -1)*2 < j && j < width-((nbSquares-1)*2)) then createRow (j+1) (acc2@[Wall]) nbNodes
+      else if (diagonal && (i=j)) then createRow (j+1) (acc2@[Path(DL)]) nbNodes
+      else if (diagonal && (i=width-j)) then createRow (j+1) (acc2@[Path(DR)]) nbNodes
+      else if ( (List.mem (i,j-1) squarecoord) || (getSquareRow acc2 (j-1) = Some(Path(H))) ) && (nbNodes != 3 || i = width/2) then createRow (j+1) (acc2@[Path(H)]) nbNodes
+      else if ( (List.mem (i-1,j) squarecoord) || (getSquare acc (i-1,j) = Some(Path(V))) ) && (test3SquaresRow acc width height (i-1) j 0 nbSquares) then createRow (j+1) (acc2@[Path(V)]) nbNodes
+      (*if the square above is a node or a path(V) then we create a path(V)
+        but only if we didn't have the maximum nodes in the column*)
+      else createRow (j+1) (acc2@[Wall]) nbNodes
+    in
+    auxInitBoard width height (i+1) nbSquares diagonal (acc@[(createRow 0 [] 0)])
+
+(*function with width height nbSquares and diagonal as arguments and creates a board with*)
+let initBoard2 (width : int) (height : int) (nbSquares : int) (diagonal : bool) : board =
+  if (
+    match (width,height,nbSquares) with
+  | (4,4,_) -> true(*three men's morris like a tic-tac-toe; this version is with 2 squares and with diagonals*)
+  | (8,8,_) -> true(*six men's morris; this version is without diagonal and with 2 squares*)
+  | (12,12,_) -> true(*nine men's morris or twelve men's morris; classic size board but the normal one is without diagonal and with 3 squares*)
+  | (_,_,_) -> false
+  ) then auxInitBoard width height 0 nbSquares diagonal []
+  else []
 
 (** Function that move a piece from the coordinate (i,j) to a certain direction only if there is a Path in this direction *)
 let moveToDirection (game : gameUpdate) ((i,j) : coordinates) (d : directionDeplacement) (color:color) : gameUpdate = 
