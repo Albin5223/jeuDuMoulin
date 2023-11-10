@@ -1,5 +1,4 @@
 open Mill.Type
-open Mill.Game
 
 let equals_board (board1 : board) (board2 : board) : bool =
     let rec compare l1 l2 =
@@ -39,6 +38,7 @@ let equals_game_update (game1 : game_update) (game2 : game_update) : bool =
     && equals_player game1.player2 game2.player2
     && game1.game_is_changed = game2.game_is_changed
 
+
 (**This test check that with the same seed, we will get the same end*)
 let testSeed =
     let open QCheck in
@@ -55,3 +55,4 @@ let testSeed =
 let () =
     let open Alcotest in
     run "SEED" [("Test with Seed generate", [QCheck_alcotest.to_alcotest testSeed])]
+

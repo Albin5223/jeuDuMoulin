@@ -1,7 +1,7 @@
 open Type
 
-(** Represent the maximum amount of pieces that each player can put on board *)
-let max_pieces_per_player = 9
+(** The max amount of pieces that a player can hold *)
+let max_pieces = 9
 
 (** Represent the number of pieces that you have to align to get a mill *)
 let nb_to_get_mill = 3
@@ -46,7 +46,7 @@ let get_row (board : board) (i : int) : square list = List.nth board i
 let get_column (board : board) (j : int) : square list = List.fold_right (fun l acc -> [List.nth l j] @ acc) board []
 
 (**Function to get coordinates from departure coordinate and direction*)
-let coordinate_from_direction (board : board) ((i, j) : coordinates) (d : direction_deplacement) : coordinates option =
+let node_from_direction (board : board) ((i, j) : coordinates) (d : direction_deplacement) : coordinates option =
     let rec go_to (board : board) ((x, y) : coordinates) (d : direction_deplacement) : coordinates option =
         let coord_bis = coordinates_from_directions d (x, y) in
         let case = get_square board coord_bis in
@@ -66,7 +66,7 @@ let check_mill_from_position (board : board) ((i, j) : coordinates) (color : col
     match get_square board (i, j) with
     | Some (Color c) when c = color ->
         let rec count_from_dir (x, y) d =
-            match coordinate_from_direction board (x, y) d with
+            match node_from_direction board (x, y) d with
             | Some (a, b) -> if get_square board (a, b) = Some (Color color) then 1 + count_from_dir (a, b) d else 0
             | _ -> 0
         in
@@ -93,7 +93,7 @@ let place_piece_on_board (board : board) ((i, j) : coordinates) color : got_mill
 (** Function that put a start piece on the board at the coordinate (i,j) and return the new game state *)
 let place_start_piece (game : game_update) ((i, j) : coordinates) (color : color) : game_update =
     let concerned_player = if game.player1.color = color then game.player1 else game.player2 in
-    if get_square game.board (i, j) = Some Empty && concerned_player.piece_placed < max_pieces_per_player
+    if get_square game.board (i, j) = Some Empty && concerned_player.piece_placed < max_pieces
     then
       let board, isMill = place_piece_on_board game.board (i, j) color in
       let updated_player =
@@ -329,32 +329,23 @@ let move_to_direction (game : game_update) ((i, j) : coordinates) (d : direction
     else not_updated_game game
 
 (**Function to get a list to possible move from a coordinate (i,j)*)
-let possible_moves (game : game_update) ((i, j) : coordinates) (player : color) (diagonal : bool) :
-    direction_deplacement list =
-    let rec aux (game : game_update) ((i, j) : coordinates) (dir : direction_deplacement) : direction_deplacement list =
-        let size = List.length game.board in
-        if i >= size || i < 0 || j >= size || j < 0
-        then []
-        else
-          match List.nth (List.nth game.board i) j with
-          | Empty -> [dir]
-          | Path _ -> aux game (coordinates_from_directions dir (i, j)) dir
-          | _ -> []
+let possible_moves (game : game_update) ((i, j) : coordinates) (player : color) : direction_deplacement list =
+    let rec aux (game : game_update) ((i, j) : coordinates) (player : color) (acc : direction_deplacement list) :
+        direction_deplacement list =
+        match acc with
+        | [] -> []
+        | x :: xs -> (
+            let destination = node_from_direction game.board (i, j) x in
+            match destination with
+            | Some (a, b) -> (
+                match get_square game.board (a, b) with
+                | Some Empty -> x :: aux game (i, j) player xs
+                | _ -> aux game (i, j) player xs)
+            | _ -> aux game (i, j) player xs)
     in
-    match get_square game.board (i, j) with
-    | Some (Color p) when p = player ->
-        let normal_moves =
-            aux game (i, j + 1) Right @ aux game (i, j - 1) Left @ aux game (i - 1, j) Up @ aux game (i + 1, j) Down
-        in
-        if diagonal
-        then
-          normal_moves
-          @ aux game (i + 1, j + 1) Down_right
-          @ aux game (i - 1, j + 1) Up_right
-          @ aux game (i + 1, j - 1) Down_left
-          @ aux game (i - 1, j - 1) Up_left
-        else normal_moves
-    | _ -> []
+    aux game (i, j) player [Up; Down; Right; Left; Up_right; Up_left; Down_right; Down_left]
+
+(**Function to get a list of all the possible moves from a player*)
 
 (**Function to apply a move in a game_update*)
 let apply (game_update : game_update) (color : color) (move : move) =

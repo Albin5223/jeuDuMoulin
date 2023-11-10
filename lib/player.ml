@@ -4,9 +4,6 @@ open Board
 let init_player (c : Type.color) : player =
     { phase = Placing; color = c; bag = []; piece_placed = 0; nb_pieces_on_board = 0 }
 
-(** The max amount of pieces that a player can hold *)
-let max_pieces = 9
-
 (**This function return a bool if the player can't move *)
 let cant_move (player : player) (game : game_update) : bool =
     let rec aux (player : player) (game : game_update) (bag : coordinates list) : bool =
@@ -57,3 +54,6 @@ let player_randomly (random : int -> int) : player_strategie =
         List.nth (get_opponent game_update player.color).bag i
     in
     { strategie_play; strategie_remove }
+
+let lost (game : game_update) (player : player) : bool =
+    ((player.phase = Moving || player.phase = Flying) && cant_move player game) || (player.nb_pieces_on_board <= 2 && player.piece_placed=max_pieces)
