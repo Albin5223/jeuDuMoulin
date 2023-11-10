@@ -31,7 +31,7 @@ type move =
     | Flying of coordinates * coordinates
 
 (** This type will be returned after each function that alterate the state of the game *)
-type game_update = { board: board; mill: bool; player1: player; player2: player; game_is_changed: bool }
+type game_update = { board: board; mill: bool; player1: player; player2: player; game_is_changed: bool; max_pieces: int}
 
 type player_strategie = {
     strategie_play: game_update -> player -> move;
@@ -71,7 +71,7 @@ let affiche_tour_info color phase =
         Format.printf "Le tour de  WHITE\n";
         pretty_print_phase phase
 
-let affiche_vainqueur color =
+let show_winner color =
     match color with
     | Black -> Format.printf "Le vainqueur est BLACK\n"
     | White -> Format.printf "Le vainqueur est WHITE\n"

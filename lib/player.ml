@@ -62,4 +62,4 @@ let player_randomly (random : int -> int) : player_strategie =
 let lost (game : game_update) (player : player) : bool =
     match player.phase with
     | Moving -> cant_move player game
-    | _ -> player.nb_pieces_on_board <= 2 && player.piece_placed = max_pieces
+    | _ -> player.nb_pieces_on_board <= 2 && player.piece_placed = game.max_pieces

@@ -10,6 +10,6 @@ let p1 = player_randomly seed
 
 let p2 = player_randomly seed
 
-let game = arena p1 p2
+let game = arena p1 p2 Nine_mens_morris
 
 let () = pretty_print_board game.board

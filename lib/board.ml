@@ -1,13 +1,10 @@
 open Type
 
-(** The max amount of pieces that a player can hold *)
-let max_pieces = 9
-
 (** Represent the number of pieces that you have to align to get a mill *)
 let nb_to_get_mill = 3
 
 let not_updated_game game =
-    { board = game.board; mill = false; player1 = game.player1; player2 = game.player2; game_is_changed = false }
+    { board = game.board; mill = false; player1 = game.player1; player2 = game.player2; game_is_changed = false; max_pieces = game.max_pieces}
 
 (** Returns the coordinates from some coordinates and its direction *)
 let coordinates_from_directions d (i, j) =
@@ -93,7 +90,7 @@ let place_piece_on_board (board : board) ((i, j) : coordinates) color : got_mill
 (** Function that put a start piece on the board at the coordinate (i,j) and return the new game state *)
 let place_start_piece (game : game_update) ((i, j) : coordinates) (color : color) : game_update =
     let concerned_player = if game.player1.color = color then game.player1 else game.player2 in
-    if get_square game.board (i, j) = Some Empty && concerned_player.piece_placed < max_pieces
+    if get_square game.board (i, j) = Some Empty && concerned_player.piece_placed < game.max_pieces
     then
       let board, isMill = place_piece_on_board game.board (i, j) color in
       let updated_player =
@@ -106,9 +103,9 @@ let place_start_piece (game : game_update) ((i, j) : coordinates) (color : color
           }
       in
       if color = game.player1.color
-      then { board; mill = isMill; player1 = updated_player; player2 = game.player2; game_is_changed = true }
-      else { board; mill = isMill; player1 = game.player1; player2 = updated_player; game_is_changed = true }
-    else { board = game.board; mill = false; player1 = game.player1; player2 = game.player2; game_is_changed = false }
+      then { board; mill = isMill; player1 = updated_player; player2 = game.player2; game_is_changed = true; max_pieces = game.max_pieces}
+      else { board; mill = isMill; player1 = game.player1; player2 = updated_player; game_is_changed = true; max_pieces = game.max_pieces}
+    else { board = game.board; mill = false; player1 = game.player1; player2 = game.player2; game_is_changed = false; max_pieces = game.max_pieces}
 
 (**
   This function remove a piece from the board and returns it
@@ -136,9 +133,9 @@ let eliminate_piece (game : game_update) ((i, j) : coordinates) (color : color) 
         in
         if c = game.player1.color
         then
-          { board = new_board; mill = false; player1 = updated_player; player2 = game.player2; game_is_changed = true }
+          { board = new_board; mill = false; player1 = updated_player; player2 = game.player2; game_is_changed = true; max_pieces = game.max_pieces}
         else
-          { board = new_board; mill = false; player1 = game.player1; player2 = updated_player; game_is_changed = true }
+          { board = new_board; mill = false; player1 = game.player1; player2 = updated_player; game_is_changed = true; max_pieces = game.max_pieces}
     | _ -> not_updated_game game (* If the piece doesn't exist in (i,j), we do nothing *)
 
 (**
@@ -165,8 +162,8 @@ let move_to_coordinates (game : game_update) ((i1, j1) : coordinates) ((i2, j2) 
           }
       in
       if color = game.player1.color
-      then { board = new_board; mill = isMill; player1 = new_player; player2 = game.player2; game_is_changed = true }
-      else { board = new_board; mill = isMill; player1 = game.player1; player2 = new_player; game_is_changed = true }
+      then { board = new_board; mill = isMill; player1 = new_player; player2 = game.player2; game_is_changed = true; max_pieces = game.max_pieces}
+      else { board = new_board; mill = isMill; player1 = game.player1; player2 = new_player; game_is_changed = true; max_pieces = game.max_pieces}
     else not_updated_game game
 
 (** Init a start board *)
@@ -345,8 +342,6 @@ let possible_moves (game : game_update) ((i, j) : coordinates) (player : color) 
     in
     aux game (i, j) player [Up; Down; Right; Left; Up_right; Up_left; Down_right; Down_left]
 
-(**Function to get a list of all the possible moves from a player*)
-
 (**Function to apply a move in a game_update*)
 let apply (game_update : game_update) (player : player) (move : move) =
     match (move, player.phase) with
@@ -354,3 +349,24 @@ let apply (game_update : game_update) (player : player) (move : move) =
     | Moving (c, dir), Moving -> move_to_direction game_update c dir player.color
     | Flying (c1, c2), Flying -> move_to_coordinates game_update c1 c2 player.color
     | _ -> not_updated_game game_update
+
+
+(** Represent the name of defaults board *)
+type template =
+    | Three_mens_morris
+    | Six_mens_morris
+    | Nine_mens_morris
+
+(** Function that returns the max number of pieces that we can place by each player depending of the board *)
+let max_piece_from_template (board : template) : int =
+    match board with
+    | Three_mens_morris -> 3
+    | Six_mens_morris -> 6
+    | Nine_mens_morris -> 9
+
+(** Function that init a board from his template *)
+let init_template (board : template) : board =
+    match board with
+    | Three_mens_morris -> init_board2 4 4 2 false
+    | Six_mens_morris -> init_board2 8 8 2 false
+    | Nine_mens_morris -> init_board2 12 12 3 false

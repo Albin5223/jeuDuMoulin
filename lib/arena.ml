@@ -36,8 +36,9 @@ let privatePlay game_update (player1 : player_strategie) (private_player1 : play
 (**
   Private function which update the phase of a player if necessary
   @param player the player to update    
+  @param max_pieces the maximum number of pieces that a player can place on the board
 *)
-let update_player_phase player =
+let update_player_phase player max_pieces =
     match player.phase with
     | Placing ->
         if player.piece_placed = max_pieces (* if the player has placed all of his pieces, he can start moving them *)
@@ -71,32 +72,40 @@ let update_phase game_update =
     {
       board = game_update.board;
       mill = game_update.mill;
-      player1 = update_player_phase game_update.player1;
-      player2 = update_player_phase game_update.player2;
+      player1 = update_player_phase game_update.player1 game_update.max_pieces;
+      player2 = update_player_phase game_update.player2 game_update.max_pieces;
       game_is_changed = game_update.game_is_changed;
+      max_pieces = game_update.max_pieces;
     }
 
-let arena (p1 : player_strategie) (p2 : player_strategie) =
-    let private_p1 = init_player Black in
-    let private_p2 = init_player White in
-    let rec turn (game_update : game_update) =
-        let game_update = update_phase game_update in
-        if lost game_update game_update.player1
+(**
+  Function that init the arena between two players, and return the game_update when the game is finished
+  @param p1 the first player
+  @param p2 the second player
+  @param template the template of the board    
+*)
+let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) =
+    let private_p1 = init_player Black in (* we init the private players, p1 is always Black *)
+    let private_p2 = init_player White in (* we init the private players, p2 is always White *)
+    let rec turn (game_update : game_update) =  (* recursive function that play a turn for each player *)
+        let game_update = update_phase game_update in (* we update the phase of the players *)
+        if lost game_update game_update.player1 (* if the player1 has lost, we return the game_update *)
         then game_update
         else
-          let newGU = privatePlay game_update p1 game_update.player1 game_update.player2 in
-          let newGU = update_phase newGU in
-          if lost newGU newGU.player2
+          let newGU = privatePlay game_update p1 game_update.player1 game_update.player2 in (* we play the turn for player1 *)
+          let newGU = update_phase newGU in (* we update the phase of the players *)
+          if lost newGU newGU.player2 (* if the player2 has lost, we return the game_update *)
           then newGU
-          else
+          else  (* else, we play the turn for player2 *)
             let newGU = privatePlay newGU p2 newGU.player2 newGU.player1 in
-            turn newGU
+            turn newGU (* we play the next turn *)
     in
     turn
       {
-        board = init_board2 12 12 3 false;
+        board = init_template template;
         mill = false;
         player1 = private_p1;
         player2 = private_p2;
         game_is_changed = false;
+        max_pieces = max_piece_from_template template;
       }
