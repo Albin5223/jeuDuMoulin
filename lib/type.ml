@@ -51,9 +51,9 @@ type got_mill = board * bool
 
 let pretty_print_phase (p : phase) =
     match p with
-    | Placing -> Format.printf "Phase de placement<v>"
-    | Moving -> Format.printf "Phase de deplacement<v>"
-    | Flying -> Format.printf "Phase de placement<v>"
+    | Placing -> Format.printf "Phase de placement\n"
+    | Moving -> Format.printf "Phase de deplacement\n"
+    | Flying -> Format.printf "Phase de flying\n"
 
 let reverse_color (c : color) : color =
     match c with
@@ -65,32 +65,32 @@ let get_opponent game_update color = get_player game_update (reverse_color color
 let affiche_tour_info color phase =
     match color with
     | Black ->
-        Format.printf "Le tour de BLACK<v>";
+        Format.printf "Le tour de BLACK\n";
         pretty_print_phase phase
     | White ->
-        Format.printf "Le tour de  WHITE<v>";
+        Format.printf "Le tour de  WHITE\n";
         pretty_print_phase phase
 
 let affiche_vainqueur color =
     match color with
-    | Black -> Format.printf "Le vainqueur est BLACK<v>"
-    | White -> Format.printf "Le vainqueur est WHITE<v>"
+    | Black -> Format.printf "Le vainqueur est BLACK\n"
+    | White -> Format.printf "Le vainqueur est WHITE\n"
 
 let print_move (m : direction_deplacement) =
     match m with
-    | Up -> Format.printf "Up<v>"
-    | Down -> Format.printf "Down<v>"
-    | Right -> Format.printf "Right<v>"
-    | Left -> Format.printf "Left<v>"
-    | Up_right -> Format.printf "Up_right<v>"
-    | Up_left -> Format.printf "Up_left<v>"
-    | Down_right -> Format.printf "Down_right<v>"
-    | Down_left -> Format.printf "Down_left<v>"
+    | Up -> Format.printf "Up\n"
+    | Down -> Format.printf "Down\n"
+    | Right -> Format.printf "Right\n"
+    | Left -> Format.printf "Left\n"
+    | Up_right -> Format.printf "Up_right\n"
+    | Up_left -> Format.printf "Up_left\n"
+    | Down_right -> Format.printf "Down_right\n"
+    | Down_left -> Format.printf "Down_left\n"
 
 let pretty_print_list_direction l = l |> List.iter (fun a -> print_move a)
 
 let print_cord (x, y) =
-    let exit = "x :" ^ string_of_int x ^ " y :" ^ string_of_int y ^ "<v>" in
+    let exit = "x :" ^ string_of_int x ^ " y :" ^ string_of_int y ^ "\n" in
     Format.printf "%s" exit
 
 (** Function that print a board square *)
@@ -112,4 +112,4 @@ let pretty_print_board (b : board) : unit =
         List.iter print_square l;
         Format.printf "@.")
       b;
-    Format.printf "<v>"
+    Format.printf "\n"

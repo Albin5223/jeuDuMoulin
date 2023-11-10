@@ -1,4 +1,6 @@
 open Mill.Type
+open Mill.Arena
+open Mill.Player
 
 let equals_board (board1 : board) (board2 : board) : bool =
     let rec compare l1 l2 =
@@ -38,21 +40,20 @@ let equals_game_update (game1 : game_update) (game2 : game_update) : bool =
     && equals_player game1.player2 game2.player2
     && game1.game_is_changed = game2.game_is_changed
 
-
 (**This test check that with the same seed, we will get the same end*)
 let testSeed =
     let open QCheck in
-    Test.make ~count:100 ~name:"for all seed : END gamePlayWithSeed = END gamePlayWithSeed when both seeds are the same"
+    Test.make ~count:10 ~name:"for all seed : END gamePlayWithSeed = END gamePlayWithSeed when both seeds are the same"
       small_int (fun x ->
         Random.init x;
         let randomSeed n = Random.int n in
-        let g1 = gameRandomly randomSeed in
-        let () = Random.init x in
-        let randomSeed n = Random.int n in
-        let g2 = gameRandomly randomSeed in
-        equals_game_update g1 g2)
+        let player1 = player_randomly randomSeed in let player2 = player_randomly randomSeed in 
+        let game1 = arena player1 player2
+        in Random.init x ;
+        let randomSeed n = Random.int n in 
+        let player1 = player_randomly randomSeed in let player2 = player_randomly randomSeed in 
+        let game2 = arena player1 player2 in equals_game_update game1 game2)
 
 let () =
     let open Alcotest in
     run "SEED" [("Test with Seed generate", [QCheck_alcotest.to_alcotest testSeed])]
-

@@ -21,7 +21,9 @@ let player_randomly (random : int -> int) : player_strategie =
             let rec choise_coord () =
                 let i = random (List.length game_update.board) in
                 let j = random (List.length game_update.board) in
-                if get_square game_update.board (i, j) = Some Empty then (i, j) else choise_coord ()
+                match get_square game_update.board (i, j) with
+                | Some Empty -> (i,j)
+                | _ -> choise_coord ()
             in
             let coord = choise_coord () in
             Placing coord
@@ -42,7 +44,9 @@ let player_randomly (random : int -> int) : player_strategie =
             let rec choise_coord () =
                 let i = random (List.length game_update.board) in
                 let j = random (List.length game_update.board) in
-                if get_square game_update.board (i, j) = Some Empty then (i, j) else choise_coord ()
+                match get_square game_update.board (i, j) with
+                | Some Empty -> (i,j)
+                | _ -> choise_coord ()
             in
             let coord_arrive = choise_coord () in
             let i = random (List.length player.bag) in
@@ -56,4 +60,6 @@ let player_randomly (random : int -> int) : player_strategie =
     { strategie_play; strategie_remove }
 
 let lost (game : game_update) (player : player) : bool =
-    ((player.phase = Moving || player.phase = Flying) && cant_move player game) || (player.nb_pieces_on_board <= 2 && player.piece_placed=max_pieces)
+    match player.phase with
+    | Moving -> cant_move player game
+    | _ -> (player.nb_pieces_on_board <= 2 && player.piece_placed=max_pieces)

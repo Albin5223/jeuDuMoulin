@@ -1,12 +1,10 @@
+open Mill.Arena
+open Mill.Player
 open Mill.Type
-open Mill.Board
 
-(*open Mill.Generator;;
-  open Mill.Game;;*)
+let seed n = Random.self_init(); Random.int n 
+let p1 = player_randomly seed
+let p2 = player_randomly seed
 
-let diagonal = true;;
-
-let test = init_board2 24 24 6 diagonal in
-pretty_print_board test
-
-(*let () = let game = gameRandomly randomAlea in prettyPrintBoard game.board*)
+let game = arena p1 p2
+let () = pretty_print_board game.board

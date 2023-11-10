@@ -41,4 +41,4 @@ val move_to_direction :
 val possible_moves :
   Type.game_update ->
   Type.coordinates -> Type.color -> Type.direction_deplacement list
-val apply : Type.game_update -> Type.color -> Type.move -> Type.game_update
+val apply : Type.game_update -> Type.player -> Type.move -> Type.game_update

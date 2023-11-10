@@ -348,8 +348,9 @@ let possible_moves (game : game_update) ((i, j) : coordinates) (player : color) 
 (**Function to get a list of all the possible moves from a player*)
 
 (**Function to apply a move in a game_update*)
-let apply (game_update : game_update) (color : color) (move : move) =
-    match move with
-    | Placing c -> place_start_piece game_update c color
-    | Moving (c, dir) -> move_to_direction game_update c dir color
-    | Flying (c1, c2) -> move_to_coordinates game_update c1 c2 color
+let apply (game_update : game_update) (player : player) (move : move) =
+    match move,player.phase with
+    | Placing c ,Placing -> place_start_piece game_update c player.color
+    | Moving (c, dir) ,Moving-> move_to_direction game_update c dir player.color
+    | Flying (c1, c2) ,Flying -> move_to_coordinates game_update c1 c2 player.color
+    |_ -> not_updated_game game_update
