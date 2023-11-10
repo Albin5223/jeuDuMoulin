@@ -1,52 +1,65 @@
-open Type;;
-open Board;;
+open Type
+open Board
 
-let initPlayer (c : Type.color) : player = {color = c; bag = []; piecePlaced = 0; nbPiecesOnBoard = 0};;
+let init_player (c : Type.color) : player =
+    { phase = Placing; color = c; bag = []; piece_placed = 0; nb_pieces_on_board = 0 }
 
-(** The max amount of pieces that a player can hold *)
-let max_pieces = 9
+(**This function return a bool if the player can't move *)
+let cant_move (player : player) (game : game_update) : bool =
+    let rec aux (player : player) (game : game_update) (bag : coordinates list) : bool =
+        match bag with
+        | [] -> true
+        | (x, y) :: xs -> List.length (possible_moves game (x, y) player.color) = 0 && aux player game xs
+    in
+    aux player game player.bag
 
+(**Player who ramdomly*)
+let player_randomly (random : int -> int) : player_strategie =
+    let strategie_play (game_update : game_update) (player : player) : move =
+        match player.phase with
+        | Placing ->
+            let rec choise_coord () =
+                let i = random (List.length game_update.board) in
+                let j = random (List.length game_update.board) in
+                match get_square game_update.board (i, j) with
+                | Some Empty -> (i, j)
+                | _ -> choise_coord ()
+            in
+            let coord = choise_coord () in
+            Placing coord
+        | Moving ->
+            let rec choise_mouv () =
+                let i = random (List.length player.bag) in
+                let coord = List.nth player.bag i in
+                let possible_move = possible_moves game_update coord player.color in
+                if List.length possible_move = 0
+                then choise_mouv ()
+                else
+                  let j = random (List.length possible_move) in
+                  let dir = List.nth possible_move j in
+                  Moving (coord, dir)
+            in
+            choise_mouv ()
+        | Flying ->
+            let rec choise_coord () =
+                let i = random (List.length game_update.board) in
+                let j = random (List.length game_update.board) in
+                match get_square game_update.board (i, j) with
+                | Some Empty -> (i, j)
+                | _ -> choise_coord ()
+            in
+            let coord_arrive = choise_coord () in
+            let i = random (List.length player.bag) in
+            let depart = List.nth player.bag i in
+            Flying (depart, coord_arrive)
+    in
+    let strategie_remove (game_update : game_update) (player : player) : coordinates =
+        let i = random (List.length (get_opponent game_update player.color).bag) in
+        List.nth (get_opponent game_update player.color).bag i
+    in
+    { strategie_play; strategie_remove }
 
-let cantMove (player : player) (game : gameUpdate) (diagonal : bool) : bool =
-  let rec aux (player : player) (game : gameUpdate) (bag : coordinates list) (diagonal : bool) : bool =
-    match bag with
-    | [] -> true
-    | (x,y) :: xs -> List.length (possibleMoves game (x,y) player.color diagonal) = 0 && (aux player game xs diagonal)
-  in
-  aux player game player.bag diagonal
-
-let rec playRandomly (random) (player:color) (game : gameUpdate) (current_phase : phase) : gameUpdate = 
-  if current_phase = Placing then 
-    let i = random board_size in
-    let j =  random board_size in (*print_string ("I , J -> "^string_of_int i ^"; "^string_of_int j^"\n");*)
-    let tmp = placeStartPiece game (i,j) player in (*(if tmp.mill then print_string ("MILLLLL"^ string_of_int (getPlayer tmp player).nbPiecesOnBoard^(string_of_int (getOpponent tmp player).nbPiecesOnBoard) ^"\n") else print_string "No milll \n");*)
-    if tmp.mill then 
-    let pieceCC = (List.nth ((getOpponent tmp player).bag) (random (getOpponent tmp player).nbPiecesOnBoard))
-    in let newgame = eliminatePiece tmp pieceCC (getOpponent tmp player).color in newgame
-      else if not tmp.gameIsChanged then playRandomly random player game current_phase (*if we choose coordinates where a piece is already here or a path or a wall*)
-    else tmp
-
-  else if current_phase = Moving then (*either the bot can just move or the opponent is flying but not the bot*)
-    let (x,y) = (List.nth (getPlayer game player).bag (random (getPlayer game player).nbPiecesOnBoard)) in
-    let movesPossible = possibleMoves game (x,y) player false in
-    if List.length movesPossible = 0 then playRandomly random player game current_phase (*if we have a unmovable piece, we examine another piece*)
-    else
-      let tmp = moveToDirection game (x,y) (List.nth movesPossible (random (List.length movesPossible))) player in
-      if tmp.mill then 
-        let pieceCC = (List.nth ((getOpponent tmp player).bag) (random (getOpponent tmp player).nbPiecesOnBoard))
-          in let newgame = eliminatePiece tmp pieceCC (getOpponent tmp player).color in newgame
-      else tmp
-
-  else (*this means either the bot is flying or both players are flying*)
-    let i = random board_size in
-    let j = random board_size in
-    let tmp = moveToCoordinates game ((List.nth ((getPlayer game player).bag) (random (getPlayer game player).nbPiecesOnBoard))) (i,j) player in
-    if tmp.mill then 
-      let pieceCC = (List.nth ((getOpponent tmp player).bag) (random (getOpponent tmp player).nbPiecesOnBoard))
-        in let newgame = eliminatePiece tmp pieceCC (getOpponent tmp player).color in newgame
-      else if not tmp.gameIsChanged then playRandomly random player game current_phase (*if we choose coordinates where a piece is already here or a path or a wall*)
-      else tmp
-  
-
-let lost (game : gameUpdate) (player : player) (diagonal : bool) (current_phase : phase) : bool =
-  ((current_phase = Moving || current_phase = Flying(reverseColor player.color)) && cantMove player game diagonal) || (player.nbPiecesOnBoard <= 2 && player.piecePlaced=9)
+let lost (game : game_update) (player : player) : bool =
+    match player.phase with
+    | Moving -> cant_move player game
+    | _ -> player.nb_pieces_on_board <= 2 && player.piece_placed = max_pieces
