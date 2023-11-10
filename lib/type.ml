@@ -20,22 +20,45 @@ type square =
 (** This will represent the game's board *)
 type board = square list list
 
+
+type phase =
+  | Placing
+  | Moving
+  | Flying
+
+(** This type will be used when moving a piece to a certain direction *)
+type directionDeplacement = 
+  | Up
+  | Down
+  | Right
+  | Left
+  | Up_right
+  | Up_left
+  | Down_right
+  | Down_left
+
+
 (** Will represent the players *)
 type player = {
+  phase : phase;
   color : color;
   piecePlaced : int;
   nbPiecesOnBoard : int;
   bag : coordinates list;
 }
 
-type phase =
-  | Placing
-  | Moving
-  | Flying of color 
-  | BothFlying
+type move = 
+  |Placing of coordinates
+  |Moving of coordinates*directionDeplacement
+  |Flying of coordinates*coordinates
+
 
 (** This type will be returned after each function that alterate the state of the game *)
 type gameUpdate = {board : board; mill : bool; player1 : player; player2 : player; gameIsChanged : bool}
+
+type playerStrategie = {stratPlay:gameUpdate->move ; stratRemove:gameUpdate->coordinates}
+
+
 (*player1 is always Black and player2 is always White  *)
 
 (**This function return a player who has the same color that the color in argument*)
@@ -49,23 +72,13 @@ let getPlayer (gameUpdate:gameUpdate)(color:color):player =
 (** Will be returned after a move, and will let us know if the move produce a mill or not *)
 type gotMill = board * bool
 
-(** This type will be used when moving a piece to a certain direction *)
-type directionDeplacement = 
-  | Up
-  | Down
-  | Right
-  | Left
-  | Up_right
-  | Up_left
-  | Down_right
-  | Down_left
 
-let prettyPrintPhase p = 
+
+let prettyPrintPhase (p:phase) = 
   match p with 
   | Placing -> print_string "Phase de placement\n"
   | Moving -> print_string "Phase de deplacement\n"
-  | Flying (_) -> print_string "Phase de placement\n"
-  | BothFlying -> print_string "Phase de vol\n"
+  | Flying -> print_string "Phase de placement\n"
 
 
 let reverseColor (c : color) : color =

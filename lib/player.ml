@@ -1,19 +1,19 @@
 open Type;;
 open Board;;
 
-let initPlayer (c : Type.color) : player = {color = c; bag = []; piecePlaced = 0; nbPiecesOnBoard = 0};;
+let initPlayer (c : Type.color) : player = {phase = Placing; color = c; bag = []; piecePlaced = 0; nbPiecesOnBoard = 0};;
 
 (** The max amount of pieces that a player can hold *)
 let max_pieces = 9
 
 
-let cantMove (player : player) (game : gameUpdate) (diagonal : bool) : bool =
-  let rec aux (player : player) (game : gameUpdate) (bag : coordinates list) (diagonal : bool) : bool =
+let cantMove (player : player) (game : gameUpdate)  : bool =
+  let rec aux (player : player) (game : gameUpdate) (bag : coordinates list) : bool =
     match bag with
     | [] -> true
-    | (x,y) :: xs -> List.length (possibleMoves game (x,y) player.color diagonal) = 0 && (aux player game xs diagonal)
+    | (x,y) :: xs -> List.length (possibleMoves game (x,y) player.color) = 0 && (aux player game xs)
   in
-  aux player game player.bag diagonal
+  aux player game player.bag
 
 let rec playRandomly (random) (player:color) (game : gameUpdate) (current_phase : phase) : gameUpdate = 
   if current_phase = Placing then 
@@ -48,5 +48,9 @@ let rec playRandomly (random) (player:color) (game : gameUpdate) (current_phase 
       else tmp
   
 
-let lost (game : gameUpdate) (player : player) (diagonal : bool) (current_phase : phase) : bool =
-  ((current_phase = Moving || current_phase = Flying(reverseColor player.color)) && cantMove player game diagonal) || (player.nbPiecesOnBoard <= 2 && player.piecePlaced=9)
+let lost (game : gameUpdate) (player : player) : bool =
+  if (player.nbPiecesOnBoard <= 2 && player.piecePlaced=9) then true
+  else
+    match player.phase with
+    | Moving | Flying -> cantMove player game
+    | _ -> false

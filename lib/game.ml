@@ -16,8 +16,7 @@ let quarter =
 let gameboard = initBoardQuarter quarter
 
 
-let gameRandomly seed =
-  let rec play (game :gameUpdate) (player:color):gameUpdate =
+let gameRandomly seed = let rec play (game :gameUpdate) (player:color):gameUpdate =
     let () = prettyPrintBoard game.board in
     if (getPlayer game player).piecePlaced<maxPiecesPerPlayer
       then  let newGameUpdate = playRandomly seed player game Placing in play newGameUpdate (reverseColor player)

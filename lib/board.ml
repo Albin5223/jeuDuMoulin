@@ -102,7 +102,7 @@ let placeStartPiece (game : gameUpdate) ((i,j):coordinates) (color:color) : game
   if(getSquare game.board (i,j) = Some Empty && (concernedPlayer.piecePlaced < maxPiecesPerPlayer))
     then
       let (board, isMill) = placePieceOnBoard game.board (i,j) color in
-      let updatedPlayer = {color = concernedPlayer.color; piecePlaced = concernedPlayer.piecePlaced + 1; nbPiecesOnBoard = concernedPlayer.nbPiecesOnBoard + 1; bag = concernedPlayer.bag@[(i,j)]} in
+      let updatedPlayer = {phase = concernedPlayer.phase;color = concernedPlayer.color; piecePlaced = concernedPlayer.piecePlaced + 1; nbPiecesOnBoard = concernedPlayer.nbPiecesOnBoard + 1; bag = concernedPlayer.bag@[(i,j)]} in
       if color = game.player1.color
         then {board = board;mill = isMill;player1 = updatedPlayer;player2 = game.player2;gameIsChanged=true}
         else {board = board;mill = isMill;player1 = game.player1;player2 = updatedPlayer;gameIsChanged=true}
@@ -123,7 +123,7 @@ let eliminatePiece (game : gameUpdate) ((i,j) : coordinates) (color : color) : g
     let concernedPlayer = getPlayer game c in
     let newBag = (List.filter (fun (x,y) -> (x,y) <> (i,j)) concernedPlayer.bag) in
     let newBoard = removeFromBoard game.board (i,j) c in
-    let updatedPlayer = {color = concernedPlayer.color; piecePlaced = concernedPlayer.piecePlaced; nbPiecesOnBoard = concernedPlayer.nbPiecesOnBoard - 1; bag = newBag} in
+    let updatedPlayer = {phase = concernedPlayer.phase;color = concernedPlayer.color; piecePlaced = concernedPlayer.piecePlaced; nbPiecesOnBoard = concernedPlayer.nbPiecesOnBoard - 1; bag = newBag} in
     if c = game.player1.color
       then {board = newBoard;mill = false; player1 = updatedPlayer;player2 = game.player2;gameIsChanged=true}
       else {board = newBoard;mill = false; player1 = game.player1;player2 = updatedPlayer;gameIsChanged=true}
@@ -142,7 +142,7 @@ let moveToCoordinates (game : gameUpdate) ((i1,j1):coordinates) ((i2,j2):coordin
     let sub = removeFromBoard game.board (i1,j1) concernedPlayer.color in 
     let newBag = (List.map (fun (x,y) -> if (x,y) = (i1,j1) then (i2,j2) else (x,y)) concernedPlayer.bag) in
     let (newBoard,isMill) = placePieceOnBoard sub (i2,j2) concernedPlayer.color in
-    let newPlayer = {color = concernedPlayer.color; piecePlaced = concernedPlayer.piecePlaced; nbPiecesOnBoard = concernedPlayer.nbPiecesOnBoard; bag = newBag} in
+    let newPlayer = {phase = concernedPlayer.phase;color = concernedPlayer.color; piecePlaced = concernedPlayer.piecePlaced; nbPiecesOnBoard = concernedPlayer.nbPiecesOnBoard; bag = newBag} in
     if color = game.player1.color
       then {board = newBoard;mill = isMill; player1 = newPlayer; player2 = game.player2;gameIsChanged = true}
       else {board = newBoard;mill = isMill; player1 = game.player1; player2 = newPlayer;gameIsChanged = true}
@@ -249,3 +249,9 @@ let possibleMoves (game : gameUpdate) ((i,j) : coordinates) (player : color) (di
     if diagonal then normalMoves@(aux game (i+1,j+1) Down_right)@(aux game (i-1,j+1) Up_right)@(aux game (i+1,j-1) Down_left)@(aux game (i-1,j-1) Up_left)
     else normalMoves
   | _ -> []
+
+let apply (gameUpdate:gameUpdate)(color:color)(move:move) =
+  match move with
+  |Placing c -> placeStartPiece gameUpdate c color
+  |Moving (c,dir)-> moveToDirection gameUpdate c dir color
+  |Flying (c1,c2) -> moveToCoordinates gameUpdate c1 c2 color

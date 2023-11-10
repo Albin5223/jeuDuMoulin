@@ -42,3 +42,4 @@ val moveToDirection :
 val possibleMoves :
   Type.gameUpdate ->
   Type.coordinates -> Type.color -> bool -> Type.directionDeplacement list
+val apply : Type.gameUpdate -> Type.color -> Type.move -> Type.gameUpdate
