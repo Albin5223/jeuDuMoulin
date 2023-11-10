@@ -1,51 +1,52 @@
 val board_size : int
 
-val maxPiecesPerPlayer : int
+val max_pieces_per_player : int
 
-val nbToGetMill : int
+val nb_to_get_mill : int
 
-val notUpdatedGame : Type.gameUpdate -> Type.gameUpdate
+val not_updated_game : Type.game_update -> Type.game_update
 
-val coordinatesFromDirections : Type.directionDeplacement -> int * int -> int * int
+val coordinates_from_directions : Type.direction_deplacement -> int * int -> int * int
 
-val pathToHaveFromDirection : Type.directionDeplacement -> Type.square
+val path_to_have_from_direction : Type.direction_deplacement -> Type.square
 
-val getSquare : Type.board -> int * int -> Type.square option
+val get_square : Type.board -> int * int -> Type.square option
 
-val getSquareRow : Type.square list -> int -> Type.square option
+val get_square_row : Type.square list -> int -> Type.square option
 
-val getRow : Type.board -> int -> Type.square list
+val get_row : Type.board -> int -> Type.square list
 
-val getColumn : Type.board -> int -> Type.square list
+val get_column : Type.board -> int -> Type.square list
 
-val coordinateFromDirection : Type.board -> Type.coordinates -> Type.directionDeplacement -> Type.coordinates option
+val coordinate_from_direction : Type.board -> Type.coordinates -> Type.direction_deplacement -> Type.coordinates option
 
-val checkMillFromPosition : Type.board -> Type.coordinates -> Type.color -> bool
+val check_mill_from_position : Type.board -> Type.coordinates -> Type.color -> bool
 
-val boardMap : (Type.square -> Type.square) -> Type.board -> Type.coordinates -> Type.square list list
+val board_map : (Type.square -> Type.square) -> Type.board -> Type.coordinates -> Type.square list list
 
-val placePieceOnBoard : Type.board -> Type.coordinates -> Type.color -> Type.gotMill
+val place_piece_on_board : Type.board -> Type.coordinates -> Type.color -> Type.got_mill
 
-val placeStartPiece : Type.gameUpdate -> Type.coordinates -> Type.color -> Type.gameUpdate
+val place_start_piece : Type.game_update -> Type.coordinates -> Type.color -> Type.game_update
 
-val removeFromBoard : Type.board -> Type.coordinates -> Type.color -> Type.board
+val remove_from_board : Type.board -> Type.coordinates -> Type.color -> Type.board
 
-val eliminatePiece : Type.gameUpdate -> Type.coordinates -> Type.color -> Type.gameUpdate
+val eliminate_piece : Type.game_update -> Type.coordinates -> Type.color -> Type.game_update
 
-val moveToCoordinates : Type.gameUpdate -> Type.coordinates -> Type.coordinates -> Type.color -> Type.gameUpdate
+val move_to_coordinates : Type.game_update -> Type.coordinates -> Type.coordinates -> Type.color -> Type.game_update
 
-val initBoard : Type.square list list
+val init_board : Type.square list list
 
-val initBoardQuarter : Type.board -> Type.board
+val init_board_quarter : Type.board -> Type.board
 
-val test3SquaresRow : Type.board -> int -> int -> int -> int -> int -> int -> bool
+val test_3_squares_row : Type.board -> int -> int -> int -> int -> int -> int -> bool
 
-val auxInitBoard : int -> int -> int -> int -> bool -> Type.board -> Type.board
+val aux_init_board : int -> int -> int -> int -> bool -> Type.board -> Type.board
 
-val initBoard2 : int -> int -> int -> bool -> Type.board
+val init_board2 : int -> int -> int -> bool -> Type.board
 
-val moveToDirection : Type.gameUpdate -> Type.coordinates -> Type.directionDeplacement -> Type.color -> Type.gameUpdate
+val move_to_direction :
+  Type.game_update -> Type.coordinates -> Type.direction_deplacement -> Type.color -> Type.game_update
 
-val possibleMoves : Type.gameUpdate -> Type.coordinates -> Type.color -> bool -> Type.directionDeplacement list
+val possible_moves : Type.game_update -> Type.coordinates -> Type.color -> bool -> Type.direction_deplacement list
 
-val apply : Type.gameUpdate -> Type.color -> Type.move -> Type.gameUpdate
+val apply : Type.game_update -> Type.color -> Type.move -> Type.game_update

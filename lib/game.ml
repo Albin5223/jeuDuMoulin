@@ -1,6 +1,6 @@
 open Type
-open Board
 open Player
+open Board
 
 let quarter =
     [
@@ -13,33 +13,33 @@ let quarter =
       [Empty; Path H; Empty; Path H; Empty; Wall; Wall];
     ]
 
-let gameboard = initBoardQuarter quarter
+let gameboard = init_board_quarter quarter
 
 let gameRandomly seed =
-    let rec play (game : gameUpdate) (player : color) : gameUpdate =
-        let () = prettyPrintBoard game.board in
-        if (getPlayer game player).piecePlaced < maxPiecesPerPlayer
+    let rec play (game : game_update) (player : color) : game_update =
+        let () = pretty_print_board game.board in
+        if (get_player game player).piece_placed < max_pieces_per_player
         then
-          let newGameUpdate = playRandomly seed player game Placing in
-          play newGameUpdate (reverseColor player)
-        else if (getPlayer game player).nbPiecesOnBoard <= 3
+          let new_Game_update = play_randomly seed player game Placing in
+          play new_Game_update (reverse_color player)
+        else if (get_player game player).nb_pieces_on_board <= 3
         then
-          if lost game (getPlayer game player) false Flying
+          if lost game (get_player game player)
           then
-            let () = afficheVainqueur (reverseColor player) in
+            let () = affiche_vainqueur (reverse_color player) in
             game
           else
-            let newGameUpdate = playRandomly seed player game Flying in
-            play newGameUpdate (reverseColor player)
-        else if lost game (getPlayer game player) false Moving
+            let new_Game_update = play_randomly seed player game Flying in
+            play new_Game_update (reverse_color player)
+        else if lost game (get_player game player)
         then
-          let () = afficheVainqueur (reverseColor player) in
+          let () = affiche_vainqueur (reverse_color player) in
           game
         else
-          let newGameUpdate = playRandomly seed player game Moving in
-          play newGameUpdate (reverseColor player)
+          let new_Game_update = play_randomly seed player game Moving in
+          play new_Game_update (reverse_color player)
     in
     let board = gameboard in
-    let p1, p2 = (initPlayer Black, initPlayer White) in
-    let game = { board; mill = false; player1 = p1; player2 = p2; gameIsChanged = false } in
+    let p1, p2 = (init_player Black, init_player White) in
+    let game = { board; mill = false; player1 = p1; player2 = p2; game_is_changed = false } in
     play game Black

@@ -10,39 +10,42 @@ type board = square list list
 
 type phase = Placing | Moving | Flying
 
-type directionDeplacement = Up | Down | Right | Left | Up_right | Up_left | Down_right | Down_left
+type direction_deplacement = Up | Down | Right | Left | Up_right | Up_left | Down_right | Down_left
 
-type player = { phase: phase; color: color; piecePlaced: int; nbPiecesOnBoard: int; bag: coordinates list }
+type player = { phase: phase; color: color; piece_placed: int; nb_pieces_on_board: int; bag: coordinates list }
 
 type move =
     | Placing of coordinates
-    | Moving of coordinates * directionDeplacement
+    | Moving of coordinates * direction_deplacement
     | Flying of coordinates * coordinates
 
-type gameUpdate = { board: board; mill: bool; player1: player; player2: player; gameIsChanged: bool }
+type game_update = { board: board; mill: bool; player1: player; player2: player; game_is_changed: bool }
 
-type playerStrategie = { stratPlay: gameUpdate -> move; stratRemove: gameUpdate -> coordinates }
+type player_strategie = {
+    strategie_play: game_update -> color -> move;
+    strategie_remove: game_update -> color -> coordinates;
+  }
 
-val getPlayer : gameUpdate -> color -> player
+val get_player : game_update -> color -> player
 
-type gotMill = board * bool
+type got_mill = board * bool
 
-val prettyPrintPhase : phase -> unit
+val pretty_print_phase : phase -> unit
 
-val reverseColor : color -> color
+val reverse_color : color -> color
 
-val getOpponent : gameUpdate -> color -> player
+val get_opponent : game_update -> color -> player
 
-val afficheTourInfo : color -> phase -> unit
+val affiche_tour_info : color -> phase -> unit
 
-val afficheVainqueur : color -> unit
+val affiche_vainqueur : color -> unit
 
-val printMove : directionDeplacement -> unit
+val print_move : direction_deplacement -> unit
 
-val prettyPrintListDirection : directionDeplacement list -> unit
+val pretty_print_list_direction : direction_deplacement list -> unit
 
-val printCord : int * int -> unit
+val print_cord : int * int -> unit
 
-val printSquare : square -> unit
+val print_square : square -> unit
 
-val prettyPrintBoard : board -> unit
+val pretty_print_board : board -> unit

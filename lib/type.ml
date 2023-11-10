@@ -19,76 +19,82 @@ type board = square list list
 type phase = Placing | Moving | Flying
 
 (** This type will be used when moving a piece to a certain direction *)
-type directionDeplacement = Up | Down | Right | Left | Up_right | Up_left | Down_right | Down_left
+type direction_deplacement = Up | Down | Right | Left | Up_right | Up_left | Down_right | Down_left
 
 (** Will represent the players *)
-type player = { phase: phase; color: color; piecePlaced: int; nbPiecesOnBoard: int; bag: coordinates list }
+type player = { phase: phase; color: color; piece_placed: int; nb_pieces_on_board: int; bag: coordinates list }
 
+(**This type represent an action*)
 type move =
     | Placing of coordinates
-    | Moving of coordinates * directionDeplacement
+    | Moving of coordinates * direction_deplacement
     | Flying of coordinates * coordinates
 
 (** This type will be returned after each function that alterate the state of the game *)
-type gameUpdate = { board: board; mill: bool; player1: player; player2: player; gameIsChanged: bool }
+type game_update = { board: board; mill: bool; player1: player; player2: player; game_is_changed: bool }
 
-type playerStrategie = { stratPlay: gameUpdate -> move; stratRemove: gameUpdate -> coordinates }
+type player_strategie = {
+    strategie_play: game_update -> color -> move;
+    strategie_remove: game_update -> color -> coordinates;
+  }
 
 (*player1 is always Black and player2 is always White  *)
 
 (**This function return a player who has the same color that the color in argument*)
-let getPlayer (gameUpdate : gameUpdate) (color : color) : player =
+let get_player (game_update : game_update) (color : color) : player =
     match color with
-    | Black -> gameUpdate.player1
-    | White -> gameUpdate.player2
+    | Black -> game_update.player1
+    | White -> game_update.player2
 
 (** Will be returned after a move, and will let us know if the move produce a mill or not *)
-type gotMill = board * bool
+type got_mill = board * bool
 
-let prettyPrintPhase (p : phase) =
+let pretty_print_phase (p : phase) =
     match p with
-    | Placing -> print_string "Phase de placement\n"
-    | Moving -> print_string "Phase de deplacement\n"
-    | Flying -> print_string "Phase de placement\n"
+    | Placing -> Format.printf "Phase de placement<v>"
+    | Moving -> Format.printf "Phase de deplacement<v>"
+    | Flying -> Format.printf "Phase de placement<v>"
 
-let reverseColor (c : color) : color =
+let reverse_color (c : color) : color =
     match c with
     | Black -> White
     | White -> Black
 
-let getOpponent gameUpdate color = getPlayer gameUpdate (reverseColor color)
+let get_opponent game_update color = get_player game_update (reverse_color color)
 
-let afficheTourInfo color phase =
+let affiche_tour_info color phase =
     match color with
     | Black ->
-        print_endline "Le tour de BLACK";
-        prettyPrintPhase phase
+        Format.printf "Le tour de BLACK<v>";
+        pretty_print_phase phase
     | White ->
-        print_endline "Le tour de  WHITE";
-        prettyPrintPhase phase
+        Format.printf "Le tour de  WHITE<v>";
+        pretty_print_phase phase
 
-let afficheVainqueur color =
+let affiche_vainqueur color =
     match color with
-    | Black -> print_endline "Le vainqueur est BLACK"
-    | White -> print_endline "Le vainqueur est WHITE"
+    | Black -> Format.printf "Le vainqueur est BLACK<v>"
+    | White -> Format.printf "Le vainqueur est WHITE<v>"
 
-let printMove (m : directionDeplacement) =
+let print_move (m : direction_deplacement) =
     match m with
-    | Up -> print_string "Up\n"
-    | Down -> print_string "Down\n"
-    | Right -> print_string "Right\n"
-    | Left -> print_string "Left\n"
-    | Up_right -> print_string "Up_right\n"
-    | Up_left -> print_string "Up_left\n"
-    | Down_right -> print_string "Down_right\n"
-    | Down_left -> print_string "Down_left\n"
+    | Up -> Format.printf "Up<v>"
+    | Down -> Format.printf "Down<v>"
+    | Right -> Format.printf "Right<v>"
+    | Left -> Format.printf "Left<v>"
+    | Up_right -> Format.printf "Up_right<v>"
+    | Up_left -> Format.printf "Up_left<v>"
+    | Down_right -> Format.printf "Down_right<v>"
+    | Down_left -> Format.printf "Down_left<v>"
 
-let prettyPrintListDirection l = l |> List.iter (fun a -> printMove a)
+let pretty_print_list_direction l = l |> List.iter (fun a -> print_move a)
 
-let printCord (x, y) = print_string ("x :" ^ string_of_int x ^ " y :" ^ string_of_int y ^ "\n")
+let print_cord (x, y) =
+    let exit = "x :" ^ string_of_int x ^ " y :" ^ string_of_int y ^ "<v>" in
+    Format.printf "%s" exit
 
 (** Function that print a board square *)
-let printSquare (s : square) =
+let print_square (s : square) =
     match s with
     | Color White -> Format.printf "{W}"
     | Color Black -> Format.printf "{B}"
@@ -100,10 +106,10 @@ let printSquare (s : square) =
     | _ -> Format.printf "   "
 
 (** Print the board in the shell *)
-let prettyPrintBoard (b : board) : unit =
+let pretty_print_board (b : board) : unit =
     List.iter
       (fun l ->
-        List.iter printSquare l;
+        List.iter print_square l;
         Format.printf "@.")
       b;
-    print_endline ""
+    Format.printf "<v>"
