@@ -40,6 +40,20 @@ let equals_game_update (game1 : game_update) (game2 : game_update) : bool =
     && equals_player game1.player2 game2.player2
     && game1.game_is_changed = game2.game_is_changed
 
+let test_config_end_game =
+    let open QCheck in
+    Test.make ~count:100 ~name:"for all game : one of players can't move or has two pieces left" small_int (fun _ ->
+        let randomSeed n =
+            Random.self_init ();
+            Random.int n
+        in
+        let player1 = player_randomly randomSeed in
+        let player2 = player_randomly randomSeed in
+        let game = arena player1 player2 in
+        (cant_move game.player1 game || game.player1.nb_pieces_on_board <= 2)
+        || cant_move game.player2 game
+        || game.player2.nb_pieces_on_board <= 2)
+
 (**This test check that with the same seed, we will get the same end*)
 let testSeed =
     let open QCheck in
@@ -47,13 +61,20 @@ let testSeed =
       small_int (fun x ->
         Random.init x;
         let randomSeed n = Random.int n in
-        let player1 = player_randomly randomSeed in let player2 = player_randomly randomSeed in 
-        let game1 = arena player1 player2
-        in Random.init x ;
-        let randomSeed n = Random.int n in 
-        let player1 = player_randomly randomSeed in let player2 = player_randomly randomSeed in 
-        let game2 = arena player1 player2 in equals_game_update game1 game2)
+        let player1 = player_randomly randomSeed in
+        let player2 = player_randomly randomSeed in
+        let game1 = arena player1 player2 in
+        Random.init x;
+        let randomSeed n = Random.int n in
+        let player1 = player_randomly randomSeed in
+        let player2 = player_randomly randomSeed in
+        let game2 = arena player1 player2 in
+        equals_game_update game1 game2)
 
 let () =
     let open Alcotest in
-    run "SEED" [("Test with Seed generate", [QCheck_alcotest.to_alcotest testSeed])]
+    run "SEED"
+      [
+        ("Test with Seed generate", [QCheck_alcotest.to_alcotest testSeed]);
+        ("Test configuration end game", [QCheck_alcotest.to_alcotest test_config_end_game]);
+      ]

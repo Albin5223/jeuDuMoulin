@@ -1,4 +1,7 @@
 val init_player : Type.color -> Type.player
+
 val cant_move : Type.player -> Type.game_update -> bool
+
 val player_randomly : (int -> int) -> Type.player_strategie
+
 val lost : Type.game_update -> Type.player -> bool

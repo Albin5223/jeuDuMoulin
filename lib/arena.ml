@@ -40,8 +40,7 @@ let privatePlay game_update (player1 : player_strategie) (private_player1 : play
 let update_player_phase player =
     match player.phase with
     | Placing ->
-        if player.piece_placed
-           = max_pieces (* if the player has placed all of his pieces, he can start moving them *)
+        if player.piece_placed = max_pieces (* if the player has placed all of his pieces, he can start moving them *)
         then
           {
             phase = Moving;
@@ -76,7 +75,7 @@ let update_phase game_update =
       player2 = update_player_phase game_update.player2;
       game_is_changed = game_update.game_is_changed;
     }
-  
+
 let arena (p1 : player_strategie) (p2 : player_strategie) =
     let private_p1 = init_player Black in
     let private_p2 = init_player White in
@@ -93,4 +92,11 @@ let arena (p1 : player_strategie) (p2 : player_strategie) =
             let newGU = privatePlay newGU p2 newGU.player2 newGU.player1 in
             turn newGU
     in
-    turn {board = init_board2 12 12 3 false; mill = false; player1 = private_p1; player2 = private_p2; game_is_changed = false }
+    turn
+      {
+        board = init_board2 12 12 3 false;
+        mill = false;
+        player1 = private_p1;
+        player2 = private_p2;
+        game_is_changed = false;
+      }
