@@ -5,18 +5,18 @@ open Player
 exception Not_Allowed of string
 
 let init_player_with_strategie
-    (strategie_play : game_update -> color -> move)
-    (strategie_remove : game_update -> color -> coordinates) =
+    (strategie_play : game_update -> player -> move)
+    (strategie_remove : game_update -> player -> coordinates) =
     { strategie_play; strategie_remove }
 
 let privatePlay game_update (player1 : player_strategie) (private_player1 : player) (private_player2 : player) =
-    let move = player1.strategie_play game_update private_player1.color in
+    let move = player1.strategie_play game_update private_player1 in
     let newGU = apply game_update private_player1.color move in
     if not newGU.game_is_changed
     then raise (Not_Allowed "Illegal move")
     else if newGU.mill
     then
-      let removed = player1.strategie_remove newGU private_player1.color in
+      let removed = player1.strategie_remove newGU private_player1 in
       let newGU = eliminate_piece newGU removed private_player2.color in
       if not newGU.game_is_changed then raise (Not_Allowed "Illegal move") else newGU
     else newGU

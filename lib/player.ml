@@ -16,63 +16,44 @@ let cant_move (player : player) (game : game_update) : bool =
     in
     aux player game player.bag
 
-let rec play_randomly random (player : color) (game : game_update) (current_phase : phase) : game_update =
-    if current_phase = Placing
-    then
-      let i = random board_size in
-      let j = random board_size in
-      (*print_string ("I , J -> "^string_of_int i ^"; "^string_of_int j^"\n");*)
-      let tmp = place_start_piece game (i, j) player in
-      (*(if tmp.mill then print_string ("MILLLLL"^ string_of_int (get_player tmp player).nb_pieces_on_board^(string_of_int (get_opponent tmp player).nb_pieces_on_board) ^"\n") else print_string "No milll \n");*)
-      if tmp.mill
-      then
-        let pieceCC = List.nth (get_opponent tmp player).bag (random (get_opponent tmp player).nb_pieces_on_board) in
-        let newgame = eliminate_piece tmp pieceCC (get_opponent tmp player).color in
-        newgame
-      else if not tmp.game_is_changed
-      then
-        play_randomly random player game
-          current_phase (*if we choose coordinates where a piece is already here or a path or a wall*)
-      else tmp
-    else if current_phase = Moving
-    then
-      (*either the bot can just move or the opponent is flying but not the bot*)
-      let x, y = List.nth (get_player game player).bag (random (get_player game player).nb_pieces_on_board) in
-      let movesPossible = possible_moves game (x, y) player false in
-      if List.length movesPossible = 0
-      then play_randomly random player game current_phase (*if we have a unmovable piece, we examine another piece*)
-      else
-        let tmp = move_to_direction game (x, y) (List.nth movesPossible (random (List.length movesPossible))) player in
-        if tmp.mill
-        then
-          let pieceCC = List.nth (get_opponent tmp player).bag (random (get_opponent tmp player).nb_pieces_on_board) in
-          let newgame = eliminate_piece tmp pieceCC (get_opponent tmp player).color in
-          newgame
-        else tmp
-    else
-      (*this means either the bot is flying or both players are flying*)
-      let i = random board_size in
-      let j = random board_size in
-      let tmp =
-          move_to_coordinates game
-            (List.nth (get_player game player).bag (random (get_player game player).nb_pieces_on_board))
-            (i, j) player
-      in
-      if tmp.mill
-      then
-        let pieceCC = List.nth (get_opponent tmp player).bag (random (get_opponent tmp player).nb_pieces_on_board) in
-        let newgame = eliminate_piece tmp pieceCC (get_opponent tmp player).color in
-        newgame
-      else if not tmp.game_is_changed
-      then
-        play_randomly random player game
-          current_phase (*if we choose coordinates where a piece is already here or a path or a wall*)
-      else tmp
-
-let lost (game : game_update) (player : player) : bool =
-    if player.nb_pieces_on_board <= 2 && player.piece_placed = 9
-    then true
-    else
-      match player.phase with
-      | Moving | Flying -> cant_move player game
-      | _ -> false
+(**Player who ramdomly*)
+let player_randomly (random : int -> int) : player_strategie =
+    let strategie_play (game_update : game_update) (player : player) : move =
+        match player.phase with
+        | Placing ->
+            let rec choise_coord () =
+                let i = random (List.length game_update.board) in
+                let j = random (List.length game_update.board) in
+                if get_square game_update.board (i, j) = Some Empty then (i, j) else choise_coord ()
+            in
+            let coord = choise_coord () in
+            Placing coord
+        | Moving ->
+            let rec choise_mouv () =
+                let i = random (List.length player.bag) in
+                let coord = List.nth player.bag i in
+                let possible_move = possible_moves game_update coord player.color in
+                if List.length possible_move = 0
+                then choise_mouv ()
+                else
+                  let j = random (List.length possible_move) in
+                  let dir = List.nth possible_move j in
+                  Moving (coord, dir)
+            in
+            choise_mouv ()
+        | Flying ->
+            let rec choise_coord () =
+                let i = random (List.length game_update.board) in
+                let j = random (List.length game_update.board) in
+                if get_square game_update.board (i, j) = Some Empty then (i, j) else choise_coord ()
+            in
+            let coord_arrive = choise_coord () in
+            let i = random (List.length player.bag) in
+            let depart = List.nth player.bag i in
+            Flying (depart, coord_arrive)
+    in
+    let strategie_remove (game_update : game_update) (player : player) : coordinates =
+        let i = random (List.length (get_opponent game_update player.color).bag) in
+        List.nth (get_opponent game_update player.color).bag i
+    in
+    { strategie_play; strategie_remove }

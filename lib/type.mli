@@ -22,8 +22,8 @@ type move =
 type game_update = { board: board; mill: bool; player1: player; player2: player; game_is_changed: bool }
 
 type player_strategie = {
-    strategie_play: game_update -> color -> move;
-    strategie_remove: game_update -> color -> coordinates;
+    strategie_play: game_update -> player -> move;
+    strategie_remove: game_update -> player -> coordinates;
   }
 
 val get_player : game_update -> color -> player

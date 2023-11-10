@@ -1,8 +1,5 @@
 open Type
 
-(** This represent the size of the board **)
-let board_size = 13
-
 (** Represent the maximum amount of pieces that each player can put on board *)
 let max_pieces_per_player = 9
 
@@ -335,7 +332,8 @@ let move_to_direction (game : game_update) ((i, j) : coordinates) (d : direction
 let possible_moves (game : game_update) ((i, j) : coordinates) (player : color) (diagonal : bool) :
     direction_deplacement list =
     let rec aux (game : game_update) ((i, j) : coordinates) (dir : direction_deplacement) : direction_deplacement list =
-        if i >= board_size || i < 0 || j >= board_size || j < 0
+        let size = List.length game.board in
+        if i >= size || i < 0 || j >= size || j < 0
         then []
         else
           match List.nth (List.nth game.board i) j with
