@@ -1,10 +1,18 @@
 open Type
 open Board
 
+(**
+    This function init a player based on a color
+    @param c : the color of the player   
+*)
 let init_player (c : Type.color) : player =
     { phase = Placing; color = c; bag = []; piece_placed = 0; nb_pieces_on_board = 0 }
 
-(**This function return a bool if the player can't move *)
+(**
+    This function return a bool if the player can't move
+    @param player : the player
+    @param game : the game
+*)
 let cant_move (player : player) (game : game_update) : bool =
     let rec aux (player : player) (game : game_update) (bag : coordinates list) : bool =
         match bag with
@@ -13,11 +21,16 @@ let cant_move (player : player) (game : game_update) : bool =
     in
     aux player game player.bag
 
-(**Player who ramdomly*)
-let player_randomly (random : int -> int) : player_strategie =
+(**
+    Player who plays ramdomly
+    @param random : the seed of the random
+*)
+let player_random (random : int -> int) : player_strategie =
+    (* The placing/moving strategy is here *)
     let strategie_play (game_update : game_update) (player : player) : move =
         match player.phase with
         | Placing ->
+            (* When the bot is in Placing phase, he chooses a random square where to place, and repeat that until he finds a correct position *)
             let rec choise_coord () =
                 let i = random (List.length game_update.board) in
                 let j = random (List.length game_update.board) in
@@ -28,6 +41,7 @@ let player_randomly (random : int -> int) : player_strategie =
             let coord = choise_coord () in
             Placing coord
         | Moving ->
+            (* When the bot is in Moving phase, he chooses a random piece in his bag, and if the piece is not blocked, he moves it to a random direction, else, repeat the operation *)
             let rec choise_mouv () =
                 let i = random (List.length player.bag) in
                 let coord = List.nth player.bag i in
@@ -41,6 +55,7 @@ let player_randomly (random : int -> int) : player_strategie =
             in
             choise_mouv ()
         | Flying ->
+            (* When the bot is in Flying phase, he chooses a random square where to place, and repeat that until he finds a correct position, then chooses a random piece in his bag to place it *)
             let rec choise_coord () =
                 let i = random (List.length game_update.board) in
                 let j = random (List.length game_update.board) in
@@ -53,12 +68,18 @@ let player_randomly (random : int -> int) : player_strategie =
             let depart = List.nth player.bag i in
             Flying (depart, coord_arrive)
     in
+    (* The removing strategy is here *)
     let strategie_remove (game_update : game_update) (player : player) : coordinates =
         let i = random (List.length (get_opponent game_update player.color).bag) in
         List.nth (get_opponent game_update player.color).bag i
     in
     { strategie_play; strategie_remove }
 
+(**
+    Function that return a bool if the player lost
+    @param game : the game
+    @param player : the player    
+*)
 let lost (game : game_update) (player : player) : bool =
     match player.phase with
     | Moving -> cant_move player game

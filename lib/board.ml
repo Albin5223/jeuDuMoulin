@@ -3,10 +3,26 @@ open Type
 (** Represent the number of pieces that you have to align to get a mill *)
 let nb_to_get_mill = 3
 
+(**
+  Function that return a none updated game
+  This function is used when the move is not legit 
+  @param game : the game state  
+*)
 let not_updated_game game =
-    { board = game.board; mill = false; player1 = game.player1; player2 = game.player2; game_is_changed = false; max_pieces = game.max_pieces}
+    {
+      board = game.board;
+      mill = false;
+      player1 = game.player1;
+      player2 = game.player2;
+      game_is_changed = false;
+      max_pieces = game.max_pieces;
+    }
 
-(** Returns the coordinates from some coordinates and its direction *)
+(**
+  Returns the coordinates of one step from a coordinate and a direction
+  @param d : the direction
+  @param ij : the coordinate
+*)
 let coordinates_from_directions d (i, j) =
     match d with
     | Up -> (i - 1, j)
@@ -18,6 +34,10 @@ let coordinates_from_directions d (i, j) =
     | Down_right -> (i + 1, j + 1)
     | Down_left -> (i + 1, j - 1)
 
+(**
+  Function that returns the path that we have to have from a direction : example : if we want to go up, we have to have a path(V) (vertical path)
+  @param d : the direction    
+*)
 let path_to_have_from_direction d =
     match d with
     | Up | Down -> Path V
@@ -25,7 +45,11 @@ let path_to_have_from_direction d =
     | Up_right | Down_left -> Path DR
     | Up_left | Down_right -> Path DL
 
-(** Function to get the square from board at (i,j)*)
+(**
+  Function to get the square from board at (i,j)
+  @param board : the board
+  @param ij : the coordinate of the square that we want to get
+*)
 let get_square (board : board) (i, j) : square option =
     if List.length board = 0
     then None
@@ -36,13 +60,27 @@ let get_square (board : board) (i, j) : square option =
 let get_square_row (row : square list) (j : int) : square option =
     if List.length row = 0 then None else if j >= List.length row || j < 0 then None else Some (List.nth row j)
 
-(** Function that return the row "i" of the board *)
+(**
+  Function that return the row "i" of the board
+  @param board : the board
+  @param i : the index of the row that we want to get
+*)
 let get_row (board : board) (i : int) : square list = List.nth board i
 
-(** Function that return the column "j" of the board *)
+(**
+  Function that return the column "j" of the board
+  @param board : the board
+  @param j : the index of the column that we want to get
+*)
 let get_column (board : board) (j : int) : square list = List.fold_right (fun l acc -> [List.nth l j] @ acc) board []
 
-(**Function to get coordinates from departure coordinate and direction*)
+(**
+  Function to get coordinates of a node from another node and a direction. 
+  Return None if there is no node in this direction OR if the first step is not a legit Path regarding the direction
+  @param board : the board
+  @param ij : the coordinate of the departure node
+  @param d : the direction of the node that we want to get
+*)
 let node_from_direction (board : board) ((i, j) : coordinates) (d : direction_deplacement) : coordinates option =
     let rec go_to (board : board) ((x, y) : coordinates) (d : direction_deplacement) : coordinates option =
         let coord_bis = coordinates_from_directions d (x, y) in
@@ -58,7 +96,12 @@ let node_from_direction (board : board) ((i, j) : coordinates) (d : direction_de
     then go_to board (i, j) d
     else None
 
-(** Function that check if there is a mill from a certain position(i,j) *)
+(**
+  Function that check if there is a mill from a certain position (i,j)
+  @param board : the board
+  @param ij : the coordinate where we want to check if there is a mill
+  @param color : the color of the player that wants to check if there is a mill
+*)
 let check_mill_from_position (board : board) ((i, j) : coordinates) (color : color) : bool =
     match get_square board (i, j) with
     | Some (Color c) when c = color ->
@@ -74,11 +117,17 @@ let check_mill_from_position (board : board) ((i, j) : coordinates) (color : col
         1 + max (max count_row count_col) (max count_diag1 count_diag2) >= nb_to_get_mill
     | _ -> false
 
-(** A map that apply the function "f" to the square at the coordinate (i,j) of the board *)
+(**
+  A map that apply the function "f" to the square at the coordinate (i,j) of the board
+  @param f : the function to apply to the square
+  @param board : the board
+  @param (i,j) : the coordinate of the square to change
+*)
 let board_map (f : square -> square) (board : board) ((i, j) : coordinates) =
     List.mapi (fun x line -> if x = i then List.mapi (fun y el -> if y = j then f el else el) line else line) board
 
 (**
+  THIS FUNCTION HAS TO BE PRIVATE :
   Function that put a piece on the board at the coordinate (i,j) and return the new board
   If the position is not legit for a piece, return the old state of the game with the old board
 *)
@@ -87,7 +136,13 @@ let place_piece_on_board (board : board) ((i, j) : coordinates) color : got_mill
     let check = check_mill_from_position board (i, j) color in
     (board, check)
 
-(** Function that put a start piece on the board at the coordinate (i,j) and return the new game state *)
+(**
+  Function that put a start piece on the board at the coordinate (i,j) and return the new game state
+  If the position is not legit for a piece, return the old state of the game
+  @param game : the game state
+  @param ij : the coordinates where we want to place the piece
+  @param color : the color of the player that wants to place the piece
+*)
 let place_start_piece (game : game_update) ((i, j) : coordinates) (color : color) : game_update =
     let concerned_player = if game.player1.color = color then game.player1 else game.player2 in
     if get_square game.board (i, j) = Some Empty && concerned_player.piece_placed < game.max_pieces
@@ -103,18 +158,54 @@ let place_start_piece (game : game_update) ((i, j) : coordinates) (color : color
           }
       in
       if color = game.player1.color
-      then { board; mill = isMill; player1 = updated_player; player2 = game.player2; game_is_changed = true; max_pieces = game.max_pieces}
-      else { board; mill = isMill; player1 = game.player1; player2 = updated_player; game_is_changed = true; max_pieces = game.max_pieces}
-    else { board = game.board; mill = false; player1 = game.player1; player2 = game.player2; game_is_changed = false; max_pieces = game.max_pieces}
+      then
+        {
+          board;
+          mill = isMill;
+          player1 = updated_player;
+          player2 = game.player2;
+          game_is_changed = true;
+          max_pieces = game.max_pieces;
+        }
+      else
+        {
+          board;
+          mill = isMill;
+          player1 = game.player1;
+          player2 = updated_player;
+          game_is_changed = true;
+          max_pieces = game.max_pieces;
+        }
+    else
+      {
+        board = game.board;
+        mill = false;
+        player1 = game.player1;
+        player2 = game.player2;
+        game_is_changed = false;
+        max_pieces = game.max_pieces;
+      }
 
 (**
+  THIS FUNCTION HAS TO BE PRIVATE :
   This function remove a piece from the board and returns it
   Return an unchanged board if there is no piece in (i,j) 
+  @param board : the board
+  @param (i,j) : the coordinates of the piece to remove
+  @param color : the color of the player that gets his piece eliminated (AND NOT THE COLOR OF THE PLAYER THAT ELIMINATES THE PIECE)
 *)
 let remove_from_board (board : board) ((i, j) : coordinates) color : board =
     board_map (fun x -> if x = Color color then Empty else x) board (i, j)
 
-(** This function eliminate a piece from the board and returns the new game state *)
+(**
+  This function eliminate a piece from the board and returns the new game state.
+  Return an unchanged game if there is no piece in (i,j) or if the piece is not from the player "color"
+  By convention, we set the attribute "isMill" to false because we know that there is no mill after an elimination
+  @param game : the game state
+  @param ij : the coordinates of the piece to eliminate
+  @param color : the color of the player that gets his piece eliminated (AND NOT THE COLOR OF THE PLAYER THAT ELIMINATES THE PIECE)
+  @return the new game state (with the piece eliminated if the move is legit, else, return the old game state)
+*)
 let eliminate_piece (game : game_update) ((i, j) : coordinates) (color : color) : game_update =
     match get_square game.board (i, j) with
     | Some (Color c) when c = color ->
@@ -133,14 +224,32 @@ let eliminate_piece (game : game_update) ((i, j) : coordinates) (color : color) 
         in
         if c = game.player1.color
         then
-          { board = new_board; mill = false; player1 = updated_player; player2 = game.player2; game_is_changed = true; max_pieces = game.max_pieces}
+          {
+            board = new_board;
+            mill = false;
+            player1 = updated_player;
+            player2 = game.player2;
+            game_is_changed = true;
+            max_pieces = game.max_pieces;
+          }
         else
-          { board = new_board; mill = false; player1 = game.player1; player2 = updated_player; game_is_changed = true; max_pieces = game.max_pieces}
+          {
+            board = new_board;
+            mill = false;
+            player1 = game.player1;
+            player2 = updated_player;
+            game_is_changed = true;
+            max_pieces = game.max_pieces;
+          }
     | _ -> not_updated_game game (* If the piece doesn't exist in (i,j), we do nothing *)
 
 (**
   This function moves a piece from (i1,j1) to (i2,j2)
   Return the changed board if the move is legal, else, return the unchanged board
+  @param game : the game state
+  @param i1j1 : the coordinate of the piece to move
+  @param i2j2 : the coordinate of the destination
+  @param color : the color of the player that wants to move the piece
 *)
 let move_to_coordinates (game : game_update) ((i1, j1) : coordinates) ((i2, j2) : coordinates) (color : color) :
     game_update =
@@ -162,8 +271,24 @@ let move_to_coordinates (game : game_update) ((i1, j1) : coordinates) ((i2, j2) 
           }
       in
       if color = game.player1.color
-      then { board = new_board; mill = isMill; player1 = new_player; player2 = game.player2; game_is_changed = true; max_pieces = game.max_pieces}
-      else { board = new_board; mill = isMill; player1 = game.player1; player2 = new_player; game_is_changed = true; max_pieces = game.max_pieces}
+      then
+        {
+          board = new_board;
+          mill = isMill;
+          player1 = new_player;
+          player2 = game.player2;
+          game_is_changed = true;
+          max_pieces = game.max_pieces;
+        }
+      else
+        {
+          board = new_board;
+          mill = isMill;
+          player1 = game.player1;
+          player2 = new_player;
+          game_is_changed = true;
+          max_pieces = game.max_pieces;
+        }
     else not_updated_game game
 
 (** Init a start board *)
@@ -219,7 +344,7 @@ let init_board_quarter (quarter : board) : board =
     in
     full_board quarter []
 
-(*function who tests the maximum of nodes a column can have in order to tell if the point (i,j) can be a path or not*)
+(** function who tests the maximum of nodes a column can have in order to tell if the point (i,j) can be a path or not *)
 let rec test_3_squares_row
     (board : board)
     (width : int)
@@ -296,7 +421,7 @@ let rec aux_init_board (width : int) (height : int) (i : int) (nb_squares : int)
       in
       aux_init_board width height (i + 1) nb_squares diagonal (acc @ [create_row 0 [] 0])
 
-(*function with width height nb_squares and diagonal as arguments and creates a board with*)
+(** Function with width height nb_squares and diagonal as arguments and creates a board with *)
 let init_board2 (width : int) (height : int) (nb_squares : int) (diagonal : bool) : board =
     if match (width, height, nb_squares) with
        | 4, 4, _ -> true (*three men's morris like a tic-tac-toe; this version is with 2 squares and with diagonals*)
@@ -308,24 +433,29 @@ let init_board2 (width : int) (height : int) (nb_squares : int) (diagonal : bool
     then aux_init_board width height 0 nb_squares diagonal []
     else []
 
-(** Function that move a piece from the coordinate (i,j) to a certain direction only if there is a Path in this direction *)
+(**
+  Function that move a piece from the coordinate (i,j) to a certain direction only if there is a Path in this direction
+  Return the changed board if the move is legal, else, return the unchanged board
+  @param game : the game state
+  @param (i,j) : the coordinate of the piece to move
+  @param d : the direction of the move
+  @param color : the color of the player that wants to move the piece
+*)
 let move_to_direction (game : game_update) ((i, j) : coordinates) (d : direction_deplacement) (color : color) :
     game_update =
-    let rec go_to (game : game_update) ((x, y) : coordinates) (d : direction_deplacement) (color : color) : game_update
-        =
-        let coord_bis dir = coordinates_from_directions dir (x, y) in
-        let case = get_square game.board (coord_bis d) in
-        if case = Some (path_to_have_from_direction d)
-        then go_to game (coord_bis d) d color
-        else if case = Some Empty
-        then move_to_coordinates game (i, j) (coord_bis d) color
-        else not_updated_game game
-    in
-    if get_square game.board (coordinates_from_directions d (i, j)) = Some (path_to_have_from_direction d)
-    then go_to game (i, j) d color
-    else not_updated_game game
+    match node_from_direction game.board (i, j) d with
+    | Some (a, b) -> (
+        match get_square game.board (a, b) with
+        | Some Empty -> move_to_coordinates game (i, j) (a, b) color
+        | _ -> not_updated_game game)
+    | _ -> not_updated_game game
 
-(**Function to get a list to possible move from a coordinate (i,j)*)
+(**
+  Function to get a list of possible moves from a coordinate (i,j)
+  @param game : the game state
+  @param (i,j) : the coordinate of the piece
+  @param player : the color of the player that wants to move the piece
+*)
 let possible_moves (game : game_update) ((i, j) : coordinates) (player : color) : direction_deplacement list =
     let rec aux (game : game_update) ((i, j) : coordinates) (player : color) (acc : direction_deplacement list) :
         direction_deplacement list =
@@ -342,7 +472,12 @@ let possible_moves (game : game_update) ((i, j) : coordinates) (player : color) 
     in
     aux game (i, j) player [Up; Down; Right; Left; Up_right; Up_left; Down_right; Down_left]
 
-(**Function to apply a move in a game_update*)
+(**
+  Function to apply a move in a game_update
+  @param game_update : the game state
+  @param player : the player that wants to apply the move
+  @param move : the move to apply
+*)
 let apply (game_update : game_update) (player : player) (move : move) =
     match (move, player.phase) with
     | Placing c, Placing -> place_start_piece game_update c player.color
@@ -350,23 +485,25 @@ let apply (game_update : game_update) (player : player) (move : move) =
     | Flying (c1, c2), Flying -> move_to_coordinates game_update c1 c2 player.color
     | _ -> not_updated_game game_update
 
+(** Represent the name of defaults board (templates) *)
+type template = Three_mens_morris | Six_mens_morris | Nine_mens_morris
 
-(** Represent the name of defaults board *)
-type template =
-    | Three_mens_morris
-    | Six_mens_morris
-    | Nine_mens_morris
-
-(** Function that returns the max number of pieces that we can place by each player depending of the board *)
+(**
+  Function that returns the max number of pieces that we can place by each player depending of the template
+  @param board : the template of the board
+*)
 let max_piece_from_template (board : template) : int =
     match board with
     | Three_mens_morris -> 3
     | Six_mens_morris -> 6
     | Nine_mens_morris -> 9
 
-(** Function that init a board from his template *)
-let init_template (board : template) : board =
-    match board with
+(**
+  Function that init a board from a template
+  @param template : the template of the board
+*)
+let init_template (template : template) : board =
+    match template with
     | Three_mens_morris -> init_board2 4 4 2 false
     | Six_mens_morris -> init_board2 8 8 2 false
     | Nine_mens_morris -> init_board2 12 12 3 false

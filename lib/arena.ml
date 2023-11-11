@@ -85,18 +85,27 @@ let update_phase game_update =
   @param template the template of the board    
 *)
 let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) =
-    let private_p1 = init_player Black in (* we init the private players, p1 is always Black *)
-    let private_p2 = init_player White in (* we init the private players, p2 is always White *)
-    let rec turn (game_update : game_update) =  (* recursive function that play a turn for each player *)
-        let game_update = update_phase game_update in (* we update the phase of the players *)
-        if lost game_update game_update.player1 (* if the player1 has lost, we return the game_update *)
+    (* we init the private players, p1 is always Black *)
+    let private_p1 = init_player Black in
+    (* we init the private players, p2 is always White *)
+    let private_p2 = init_player White in
+    (* recursive function that play a turn for each player *)
+    let rec turn (game_update : game_update) =
+        (* we update the phase of the players *)
+        let game_update = update_phase game_update in
+        (* if the player1 has lost, we return the game_update *)
+        if lost game_update game_update.player1
         then game_update
         else
-          let newGU = privatePlay game_update p1 game_update.player1 game_update.player2 in (* we play the turn for player1 *)
-          let newGU = update_phase newGU in (* we update the phase of the players *)
-          if lost newGU newGU.player2 (* if the player2 has lost, we return the game_update *)
+          (* we play the turn for player1 *)
+          let newGU = privatePlay game_update p1 game_update.player1 game_update.player2 in
+          (* we update the phase of the players *)
+          let newGU = update_phase newGU in
+          (* if the player2 has lost, we return the game_update *)
+          if lost newGU newGU.player2
           then newGU
-          else  (* else, we play the turn for player2 *)
+          else
+            (* else, we play the turn for player2 *)
             let newGU = privatePlay newGU p2 newGU.player2 newGU.player1 in
             turn newGU (* we play the next turn *)
     in

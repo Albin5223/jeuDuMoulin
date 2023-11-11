@@ -47,8 +47,8 @@ let test_config_end_game =
             Random.self_init ();
             Random.int n
         in
-        let player1 = player_randomly randomSeed in
-        let player2 = player_randomly randomSeed in
+        let player1 = player_random randomSeed in
+        let player2 = player_random randomSeed in
         let game = arena player1 player2 Nine_mens_morris in
         (cant_move game.player1 game || game.player1.nb_pieces_on_board <= 2)
         || cant_move game.player2 game
@@ -61,13 +61,13 @@ let testSeed =
       small_int (fun x ->
         Random.init x;
         let randomSeed n = Random.int n in
-        let player1 = player_randomly randomSeed in
-        let player2 = player_randomly randomSeed in
+        let player1 = player_random randomSeed in
+        let player2 = player_random randomSeed in
         let game1 = arena player1 player2 Nine_mens_morris in
         Random.init x;
         let randomSeed n = Random.int n in
-        let player1 = player_randomly randomSeed in
-        let player2 = player_randomly randomSeed in
+        let player1 = player_random randomSeed in
+        let player2 = player_random randomSeed in
         let game2 = arena player1 player2 Nine_mens_morris in
         equals_game_update game1 game2)
 

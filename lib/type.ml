@@ -31,7 +31,14 @@ type move =
     | Flying of coordinates * coordinates
 
 (** This type will be returned after each function that alterate the state of the game *)
-type game_update = { board: board; mill: bool; player1: player; player2: player; game_is_changed: bool; max_pieces: int}
+type game_update = {
+    board: board;
+    mill: bool;
+    player1: player;
+    player2: player;
+    game_is_changed: bool;
+    max_pieces: int;
+  }
 
 type player_strategie = {
     strategie_play: game_update -> player -> move;
