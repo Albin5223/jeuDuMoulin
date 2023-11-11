@@ -125,7 +125,7 @@ let test_reachable =
         let square = get_square board (i,j) in 
         match square with 
         |Some(Empty) -> let new_board = square_reachable_from_coordinates (i,j) board in test_complete_board new_board
-        |_->true)
+        |_->let new_board = square_reachable_from_coordinates (0,0) board in test_complete_board new_board)
 
 let () =
     let open Alcotest in
