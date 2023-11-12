@@ -5,11 +5,11 @@
 (generate_opam_files true)
 
 (source
- (github username/reponame))
+ (uri git+https://gaufre.informatique.univ-paris-diderot.fr/paris/ppf5-jeudumoulin-ocaml))
 
-(authors "Author Name")
+(authors "ESPANTET Nicolas, LEFORESTIER Meril, PARIS Albin, YAZICI Servan")
 
-(maintainers "Maintainer Name")
+(maintainers "ESPANTET Nicolas, LEFORESTIER Meril, PARIS Albin, YAZICI Servan")
 
 (license LICENSE)
 
@@ -19,8 +19,6 @@
  (name mill)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune)
- (tags
-  (topics "to describe" your project alcotest qcheck qcheck-alcotest)))
+ (depends ocaml dune alcotest qcheck qcheck-alcotest)
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
