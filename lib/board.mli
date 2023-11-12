@@ -47,7 +47,7 @@ val possible_moves : Type.game_update -> Type.coordinates -> Type.color -> Type.
 
 val apply : Type.game_update -> Type.player -> Type.move -> Type.game_update
 
-type template = Three_mens_morris | Six_mens_morris | Nine_mens_morris
+type template = Three_mens_morris | Six_mens_morris | Nine_mens_morris | Twelve_mens_morris
 
 val max_piece_from_template : template -> int
 
