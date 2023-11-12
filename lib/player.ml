@@ -1,5 +1,5 @@
-open Type
-open Board
+open Type;;
+open Board;;
 
 (**
     This function init a player based on a color
