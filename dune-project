@@ -19,6 +19,6 @@
  (name mill)
  (synopsis "A short synopsis")
  (description "A longer description")
- (depends ocaml dune alcotest qcheck qcheck-alcotest)
+ (depends ocaml dune alcotest qcheck qcheck-alcotest))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
