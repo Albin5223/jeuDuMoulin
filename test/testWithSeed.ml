@@ -72,7 +72,6 @@ let testSeed =
         let game2 = arena player1 player2 Nine_mens_morris in
         equals_game_update game1 game2)
 
-
 let square_reachable_from_coordinates (i, j) (board : board) : board =
     let rec allReachable_from_coordinates (i, j) (board : board) (acc : direction_deplacement list) =
         let new_board, _ = place_piece_on_board board (i, j) Black in
@@ -86,46 +85,57 @@ let square_reachable_from_coordinates (i, j) (board : board) : board =
                 | Some c -> (
                     let square = get_square board c in
                     match square with
-                    | Some Empty -> let nv = allReachable_from_coordinates c board acc in loop nv (i,j) xs
+                    | Some Empty ->
+                        let nv = allReachable_from_coordinates c board acc in
+                        loop nv (i, j) xs
                     | _ -> loop board (i, j) xs))
         in
         loop new_board (i, j) acc
     in
     allReachable_from_coordinates (i, j) board [Up; Down; Right; Left; Up_right; Up_left; Down_right; Down_left]
 
-let test_complete_board (board:board):bool =
+let test_complete_board (board : board) : bool =
     let rec aux i j =
-        let size = List.length board in 
-        if i = size && j = size 
-            then true
-        else 
-            if j = size 
-                then aux (i+1) 0
-            else 
-                let square = get_square board (i,j) in 
-                match square with 
-                |Some(Empty) -> false
-                |_-> aux i (j+1)
-            in aux 0 0
+        let size = List.length board in
+        if i = size && j = size
+        then true
+        else if j = size
+        then aux (i + 1) 0
+        else
+          let square = get_square board (i, j) in
+          match square with
+          | Some Empty -> false
+          | _ -> aux i (j + 1)
+    in
+    aux 0 0
 
 let generate_templates =
     let open QCheck in
-    Gen.oneof [ Gen.return Six_mens_morris; Gen.return Three_mens_morris; Gen.return Nine_mens_morris]
+    Gen.oneof
+      [
+        Gen.return Six_mens_morris;
+        Gen.return Three_mens_morris;
+        Gen.return Nine_mens_morris;
+        Gen.return Twelve_mens_morris;
+      ]
 
 let arbitrary_templates = QCheck.make generate_templates
 
-let test_reachable = 
+let test_reachable =
     let open QCheck in
     Test.make ~count:10000 ~name:"for all board : all square are reachable"
-      (triple small_int small_int arbitrary_templates) 
-      (fun (x,y,template) ->
-        let board = init_template template in 
-        let i = x mod (List.length board)in 
-        let j = y mod (List.length board) in 
-        let square = get_square board (i,j) in 
-        match square with 
-        |Some(Empty) -> let new_board = square_reachable_from_coordinates (i,j) board in test_complete_board new_board
-        |_->let new_board = square_reachable_from_coordinates (0,0) board in test_complete_board new_board)
+      (triple small_int small_int arbitrary_templates) (fun (x, y, template) ->
+        let board = init_template template in
+        let i = x mod List.length board in
+        let j = y mod List.length board in
+        let square = get_square board (i, j) in
+        match square with
+        | Some Empty ->
+            let new_board = square_reachable_from_coordinates (i, j) board in
+            test_complete_board new_board
+        | _ ->
+            let new_board = square_reachable_from_coordinates (0, 0) board in
+            test_complete_board new_board)
 
 let () =
     let open Alcotest in
