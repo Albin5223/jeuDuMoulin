@@ -486,7 +486,7 @@ let apply (game_update : game_update) (player : player) (move : move) =
     | _ -> not_updated_game game_update
 
 (** Represent the name of defaults board (templates) *)
-type template = Three_mens_morris | Six_mens_morris | Nine_mens_morris
+type template = Three_mens_morris | Six_mens_morris | Nine_mens_morris | Twelve_mens_morris
 
 (**
   Function that returns the max number of pieces that we can place by each player depending of the template
@@ -497,6 +497,7 @@ let max_piece_from_template (board : template) : int =
     | Three_mens_morris -> 3
     | Six_mens_morris -> 6
     | Nine_mens_morris -> 9
+    | Twelve_mens_morris -> 9
 
 (**
   Function that init a board from a template
@@ -504,6 +505,7 @@ let max_piece_from_template (board : template) : int =
 *)
 let init_template (template : template) : board =
     match template with
-    | Three_mens_morris -> init_board2 4 4 2 false
+    | Three_mens_morris -> init_board2 4 4 2 true
     | Six_mens_morris -> init_board2 8 8 2 false
     | Nine_mens_morris -> init_board2 12 12 3 false
+    | Twelve_mens_morris -> init_board2 12 12 3 true
