@@ -21,6 +21,6 @@
  (description "A longer description")
  (depends ocaml dune)
  (tags
-  (topics "to describe" your project)))
+  (topics "to describe" your project alcotest qcheck qcheck-alcotest)))
 
 ; See the complete stanza docs at https://dune.readthedocs.io/en/stable/dune-files.html#dune-project
