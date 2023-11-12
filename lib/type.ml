@@ -50,8 +50,8 @@ type player_strategie = {
 (**This function return a player who has the same color that the color in argument*)
 let get_player (game_update : game_update) (color : color) : player =
     match color with
-    | Black -> game_update.player1
-    | White -> game_update.player2
+    | White -> game_update.player1
+    | Black -> game_update.player2
 
 (** Will be returned after a move, and will let us know if the move produce a mill or not *)
 type got_mill = board * bool
