@@ -86,9 +86,9 @@ let update_phase game_update =
 *)
 let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) =
     (* we init the private players, p1 is always Black *)
-    let private_p1 = init_player Black in
+    let private_p1 = init_player White in
     (* we init the private players, p2 is always White *)
-    let private_p2 = init_player White in
+    let private_p2 = init_player Black in
     (* recursive function that play a turn for each player *)
     let rec turn (game_update : game_update) =
         (* we update the phase of the players *)
