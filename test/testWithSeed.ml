@@ -137,6 +137,53 @@ let test_reachable =
             let new_board = square_reachable_from_coordinates (0, 0) board in
             test_complete_board new_board)
 
+let player_random_dumb (random : int -> int) : player_strategie =
+    (* The placing/moving strategy is here *)
+    let strategie_play (game_update : game_update) (player : player) : move =
+        match player.phase with
+        | Placing ->
+            (* We also allow the bot to go outside the board by 1 square (to make him very dumb)*)
+            let i = random (List.length game_update.board + 2) - 1 in
+            let j = random (List.length game_update.board + 2) - 1 in
+            Placing (i, j)
+        | Moving ->
+            let i = random (List.length player.bag + 2) - 1 in
+            let coord = List.nth player.bag i in
+            let possible_move = [Up; Down; Right; Left; Up_right; Up_left; Down_right; Down_left] in
+            let j = random (List.length possible_move + 2) - 1 in
+            let dir = List.nth possible_move j in
+            Moving (coord, dir)
+        | Flying ->
+            (* We also allow the bot to go outside the board by 1 square (to make him very dumb)*)
+            let i = random (List.length game_update.board + 2) - 1 in
+            let j = random (List.length game_update.board + 2) - 1 in
+            let coord_arrive = (i, j) in
+            let i = random (List.length player.bag) in
+            let depart = List.nth player.bag i in
+            Flying (depart, coord_arrive)
+    in
+    (* The removing strategy is here *)
+    let strategie_remove (game_update : game_update) (player : player) : coordinates =
+        let i = random (List.length (get_opponent game_update player.color).bag) in
+        List.nth (get_opponent game_update player.color).bag i
+    in
+    { strategie_play; strategie_remove }
+
+let test_error_player =
+    let open QCheck in
+    Test.make ~count:1000 ~name:"for all game : the dumb bot will never finish the game"
+      (pair small_int arbitrary_templates) (fun (x, template) ->
+        Random.init x;
+        let randomSeed n = Random.int n in
+        let player1 = player_random_dumb randomSeed in
+        let player2 = player_random_dumb randomSeed in
+        try
+          let _ = arena player1 player2 template in
+          false
+        with
+        | Not_Allowed _ | Invalid_Strategy _ -> true
+        | _ -> false)
+
 let () =
     let open Alcotest in
     run "SEED"
@@ -144,4 +191,5 @@ let () =
         ("Test with Seed generate", [QCheck_alcotest.to_alcotest testSeed]);
         ("Test configuration end game", [QCheck_alcotest.to_alcotest test_config_end_game]);
         ("Test reachable square", [QCheck_alcotest.to_alcotest test_reachable]);
+        ("Test error player", [QCheck_alcotest.to_alcotest test_error_player]);
       ]

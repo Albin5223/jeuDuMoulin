@@ -4,6 +4,8 @@ open Player
 
 exception Not_Allowed of string
 
+exception Invalid_Strategy of string
+
 (**
   Function that init a strategic player
   @param strategie_play the strategie to play for the player (placing and moving pieces)
@@ -21,17 +23,19 @@ let init_player_with_strategie
   @param private_player1 the private player that is playing
   @param private_player2 the private player that is not playing (the opponent)
 *)
-let privatePlay game_update (player1 : player_strategie) (private_player1 : player) (private_player2 : player) =
-    let move = player1.strategie_play game_update private_player1 in
-    let newGU = apply game_update private_player1 move in
-    if not newGU.game_is_changed
-    then raise (Not_Allowed "Illegal move placed/move")
-    else if newGU.mill
-    then
-      let removed = player1.strategie_remove newGU private_player1 in
-      let newGU = eliminate_piece newGU removed private_player2.color in
-      if not newGU.game_is_changed then raise (Not_Allowed "Illegal move remove") else newGU
-    else newGU
+let private_play game_update (player1 : player_strategie) (private_player1 : player) (private_player2 : player) =
+    try
+      let move = player1.strategie_play game_update private_player1 in
+      let newGU = apply game_update private_player1 move in
+      if not newGU.game_is_changed
+      then raise (Not_Allowed "Illegal move placed/move")
+      else if newGU.mill
+      then
+        let removed = player1.strategie_remove newGU private_player1 in
+        let newGU = eliminate_piece newGU removed private_player2.color in
+        if not newGU.game_is_changed then raise (Not_Allowed "Illegal move remove") else newGU
+      else newGU
+    with _ -> raise (Invalid_Strategy "Strategy invalid")
 
 (**
   Private function which update the phase of a player if necessary
@@ -98,7 +102,7 @@ let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) 
         then game_update
         else
           (* we play the turn for player1 *)
-          let newGU = privatePlay game_update p1 game_update.player1 game_update.player2 in
+          let newGU = private_play game_update p1 game_update.player1 game_update.player2 in
           (* we update the phase of the players *)
           let newGU = update_phase newGU in
           (* if the player2 has lost, we return the game_update *)
@@ -106,7 +110,7 @@ let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) 
           then newGU
           else
             (* else, we play the turn for player2 *)
-            let newGU = privatePlay newGU p2 newGU.player2 newGU.player1 in
+            let newGU = private_play newGU p2 newGU.player2 newGU.player1 in
             turn newGU (* we play the next turn *)
     in
     turn
