@@ -1,8 +1,9 @@
 open Type
-open Board
-open Player
+open Engine
 
 exception Not_Allowed of string
+
+exception Invalid_Strategy of string
 
 (**
   Function that init a strategic player
@@ -21,82 +22,111 @@ let init_player_with_strategie
   @param private_player1 the private player that is playing
   @param private_player2 the private player that is not playing (the opponent)
 *)
-let privatePlay game_update (player1 : player_strategie) (private_player1 : player) (private_player2 : player) =
-    let move = player1.strategie_play game_update private_player1 in
-    let newGU = apply game_update private_player1 move in
-    if not newGU.game_is_changed
-    then raise (Not_Allowed "Illegal move placed/move")
-    else if newGU.mill
-    then
-      let removed = player1.strategie_remove newGU private_player1 in
-      let newGU = eliminate_piece newGU removed private_player2.color in
-      if not newGU.game_is_changed then raise (Not_Allowed "Illegal move remove") else newGU
-    else newGU
+let private_play game_update (player1 : player_strategie) (private_player1 : player) (private_player2 : player) =
+    try
+      let move = player1.strategie_play game_update private_player1 in
+      let newGU = apply game_update private_player1 move in
+      if not newGU.game_is_changed
+      then raise (Not_Allowed "Illegal move placed/move")
+      else if newGU.mill
+      then
+        let removed = player1.strategie_remove newGU private_player1 in
+        let newGU = eliminate_piece newGU removed private_player2.color in
+        if not newGU.game_is_changed then raise (Not_Allowed "Illegal move remove") else newGU
+      else newGU
+    with _ -> raise (Invalid_Strategy "Strategy invalid")
 
 (**
-  Private function which update the phase of a player if necessary
-  @param player the player to update    
+  Function that init the arena between two players, and return the game_update when the game is finished
+  @param p1 the first player
+  @param p2 the second player
+  @param template the template of the board    
 *)
-let update_player_phase player =
-    match player.phase with
-    | Placing ->
-        if player.piece_placed = max_pieces (* if the player has placed all of his pieces, he can start moving them *)
-        then
-          {
-            phase = Moving;
-            color = player.color;
-            piece_placed = player.piece_placed;
-            nb_pieces_on_board = player.nb_pieces_on_board;
-            bag = player.bag;
-          }
-        else player (* else, no changes *)
-    | Moving ->
-        if player.nb_pieces_on_board = 3 (* if the player has only 3 pieces left, he can start flying them *)
-        then
-          {
-            phase = Flying;
-            color = player.color;
-            piece_placed = player.piece_placed;
-            nb_pieces_on_board = player.nb_pieces_on_board;
-            bag = player.bag;
-          }
-        else player (* else, no changes *)
-    | Flying -> player (* if the player is already flying, no changes *)
-
-(**
-  Private function that update the phase of both players in the game_update
-  @param game_update the game_update to update    
-*)
-let update_phase game_update =
-    {
-      board = game_update.board;
-      mill = game_update.mill;
-      player1 = update_player_phase game_update.player1;
-      player2 = update_player_phase game_update.player2;
-      game_is_changed = game_update.game_is_changed;
-    }
-
-let arena (p1 : player_strategie) (p2 : player_strategie) =
-    let private_p1 = init_player Black in
-    let private_p2 = init_player White in
+let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) =
+    (* we init the private players, p1 is always Black *)
+    let private_p1 = init_player White in
+    (* we init the private players, p2 is always White *)
+    let private_p2 = init_player Black in
+    (* recursive function that play a turn for each player *)
     let rec turn (game_update : game_update) =
+        (* we update the phase of the players *)
         let game_update = update_phase game_update in
+        (* if the player1 has lost, we return the game_update *)
         if lost game_update game_update.player1
         then game_update
         else
-          let newGU = privatePlay game_update p1 game_update.player1 game_update.player2 in
+          (* we play the turn for player1 *)
+          let newGU = private_play game_update p1 game_update.player1 game_update.player2 in
+          (* we update the phase of the players *)
           let newGU = update_phase newGU in
+          (* if the player2 has lost, we return the game_update *)
           if lost newGU newGU.player2
           then newGU
           else
-            let newGU = privatePlay newGU p2 newGU.player2 newGU.player1 in
-            turn newGU
+            (* else, we play the turn for player2 *)
+            let newGU = private_play newGU p2 newGU.player2 newGU.player1 in
+            turn newGU (* we play the next turn *)
     in
     turn
       {
-        board = init_board2 12 12 3 false;
+        board = init_board_with_template template;
         mill = false;
         player1 = private_p1;
         player2 = private_p2;
         game_is_changed = false;
+        max_pieces = max_piece_from_template template;
       }
+
+(**
+    Player who plays ramdomly
+    @param random : the seed of the random
+*)
+let player_random (random : int -> int) : player_strategie =
+    (* The placing/moving strategy is here *)
+    let strategie_play (game_update : game_update) (player : player) : move =
+        match player.phase with
+        | Placing ->
+            (* When the bot is in Placing phase, he chooses a random square where to place, and repeat that until he finds a correct position *)
+            let rec choise_coord () =
+                let i = random (List.length game_update.board) in
+                let j = random (List.length game_update.board) in
+                match get_square game_update.board (i, j) with
+                | Some Empty -> (i, j)
+                | _ -> choise_coord ()
+            in
+            let coord = choise_coord () in
+            Placing coord
+        | Moving ->
+            (* When the bot is in Moving phase, he chooses a random piece in his bag, and if the piece is not blocked, he moves it to a random direction, else, repeat the operation *)
+            let rec choise_mouv () =
+                let i = random (List.length player.bag) in
+                let coord = List.nth player.bag i in
+                let possible_move = possible_moves game_update coord player.color in
+                if List.length possible_move = 0
+                then choise_mouv ()
+                else
+                  let j = random (List.length possible_move) in
+                  let dir = List.nth possible_move j in
+                  Moving (coord, dir)
+            in
+            choise_mouv ()
+        | Flying ->
+            (* When the bot is in Flying phase, he chooses a random square where to place, and repeat that until he finds a correct position, then chooses a random piece in his bag to place it *)
+            let rec choise_coord () =
+                let i = random (List.length game_update.board) in
+                let j = random (List.length game_update.board) in
+                match get_square game_update.board (i, j) with
+                | Some Empty -> (i, j)
+                | _ -> choise_coord ()
+            in
+            let coord_arrive = choise_coord () in
+            let i = random (List.length player.bag) in
+            let depart = List.nth player.bag i in
+            Flying (depart, coord_arrive)
+    in
+    (* The removing strategy is here *)
+    let strategie_remove (game_update : game_update) (player : player) : coordinates =
+        let i = random (List.length (get_opponent game_update player.color).bag) in
+        List.nth (get_opponent game_update player.color).bag i
+    in
+    { strategie_play; strategie_remove }

@@ -1,3 +1,3 @@
 (test
- (name testWithSeed)
- (libraries mill qcheck qcheck-alcotest))
+ (name test)
+ (libraries mill alcotest qcheck qcheck-alcotest))

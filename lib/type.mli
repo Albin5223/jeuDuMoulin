@@ -19,33 +19,20 @@ type move =
     | Moving of coordinates * direction_deplacement
     | Flying of coordinates * coordinates
 
-type game_update = { board: board; mill: bool; player1: player; player2: player; game_is_changed: bool }
+type game_update = {
+    board: board;
+    mill: bool;
+    player1: player;
+    player2: player;
+    game_is_changed: bool;
+    max_pieces: int;
+  }
 
 type player_strategie = {
     strategie_play: game_update -> player -> move;
     strategie_remove: game_update -> player -> coordinates;
   }
 
-val get_player : game_update -> color -> player
-
 type got_mill = board * bool
 
-val pretty_print_phase : phase -> unit
-
-val reverse_color : color -> color
-
-val get_opponent : game_update -> color -> player
-
-val affiche_tour_info : color -> phase -> unit
-
-val affiche_vainqueur : color -> unit
-
-val print_move : direction_deplacement -> unit
-
-val pretty_print_list_direction : direction_deplacement list -> unit
-
-val print_cord : int * int -> unit
-
-val print_square : square -> unit
-
-val pretty_print_board : board -> unit
+type template = Three_mens_morris | Six_mens_morris | Nine_mens_morris | Twelve_mens_morris
