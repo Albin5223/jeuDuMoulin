@@ -52,3 +52,9 @@ type template = Three_mens_morris | Six_mens_morris | Nine_mens_morris | Twelve_
 val max_piece_from_template : template -> int
 
 val init_template : template -> Type.board
+
+val cant_move : Type.player -> Type.game_update -> bool
+
+val lost : Type.game_update -> Type.player -> bool
+
+val init_player : Type.color -> Type.player

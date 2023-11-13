@@ -509,3 +509,33 @@ let init_template (template : template) : board =
     | Six_mens_morris -> init_board2 8 8 2 false
     | Nine_mens_morris -> init_board2 12 12 3 false
     | Twelve_mens_morris -> init_board2 12 12 3 true
+
+(**
+    This function return a bool if the player can't move
+    @param player : the player
+    @param game : the game
+*)
+let cant_move (player : player) (game : game_update) : bool =
+    let rec aux (player : player) (game : game_update) (bag : coordinates list) : bool =
+        match bag with
+        | [] -> true
+        | (x, y) :: xs -> List.length (possible_moves game (x, y) player.color) = 0 && aux player game xs
+    in
+    aux player game player.bag
+
+(**
+    Function that return a bool if the player lost
+    @param game : the game
+    @param player : the player    
+*)
+let lost (game : game_update) (player : player) : bool =
+    match player.phase with
+    | Moving -> cant_move player game
+    | _ -> player.nb_pieces_on_board <= 2 && player.piece_placed = game.max_pieces
+
+(**
+    This function init a player based on a color
+    @param c : the color of the player   
+*)
+let init_player (c : Type.color) : player =
+    { phase = Placing; color = c; bag = []; piece_placed = 0; nb_pieces_on_board = 0 }

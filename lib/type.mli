@@ -37,22 +37,6 @@ val get_player : game_update -> color -> player
 
 type got_mill = board * bool
 
-val pretty_print_phase : phase -> unit
-
 val reverse_color : color -> color
 
 val get_opponent : game_update -> color -> player
-
-val affiche_tour_info : color -> phase -> unit
-
-val show_winner : color -> unit
-
-val print_move : direction_deplacement -> unit
-
-val pretty_print_list_direction : direction_deplacement list -> unit
-
-val print_cord : int * int -> unit
-
-val print_square : square -> unit
-
-val pretty_print_board : board -> unit
