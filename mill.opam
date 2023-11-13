@@ -2,21 +2,12 @@
 opam-version: "2.0"
 synopsis: "A short synopsis"
 description: "A longer description"
-maintainer: ["Maintainer Name"]
-authors: ["Author Name"]
-license: "LICENSE"
-tags: [
-  "topics"
-  "to describe"
-  "your"
-  "project"
-  "alcotest"
-  "qcheck"
-  "qcheck-alcotest"
+maintainer: [
+  "ESPANTET Nicolas, LEFORESTIER Meril, PARIS Albin, YAZICI Servan"
 ]
-homepage: "https://github.com/username/reponame"
+authors: ["ESPANTET Nicolas, LEFORESTIER Meril, PARIS Albin, YAZICI Servan"]
+license: "LICENSE"
 doc: "https://url/to/documentation"
-bug-reports: "https://github.com/username/reponame/issues"
 depends: [
   "ocaml"
   "dune" {>= "3.10"}
@@ -39,4 +30,5 @@ build: [
     "@doc" {with-doc}
   ]
 ]
-dev-repo: "git+https://github.com/username/reponame.git"
+dev-repo:
+  "git+https://gaufre.informatique.univ-paris-diderot.fr/paris/ppf5-jeudumoulin-ocaml"

@@ -1,6 +1,6 @@
 open Mill.Type
 open Mill.Arena
-open Mill.Board
+open Mill.Engine
 
 (*PRETTY PRINTS*)
 
@@ -187,7 +187,7 @@ let test_reachable =
     let open QCheck in
     Test.make ~count:10000 ~name:"for all board : all square are reachable"
       (triple small_int small_int arbitrary_templates) (fun (x, y, template) ->
-        let board = init_template template in
+        let board = init_board_with_template template in
         let i = x mod List.length board in
         let j = y mod List.length board in
         let square = get_square board (i, j) in

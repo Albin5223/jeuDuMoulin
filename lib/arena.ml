@@ -1,5 +1,5 @@
 open Type
-open Board
+open Engine
 
 exception Not_Allowed of string
 
@@ -37,51 +37,6 @@ let private_play game_update (player1 : player_strategie) (private_player1 : pla
     with _ -> raise (Invalid_Strategy "Strategy invalid")
 
 (**
-  Private function which update the phase of a player if necessary
-  @param player the player to update    
-  @param max_pieces the maximum number of pieces that a player can place on the board
-*)
-let update_player_phase player max_pieces =
-    match player.phase with
-    | Placing ->
-        if player.piece_placed = max_pieces (* if the player has placed all of his pieces, he can start moving them *)
-        then
-          {
-            phase = Moving;
-            color = player.color;
-            piece_placed = player.piece_placed;
-            nb_pieces_on_board = player.nb_pieces_on_board;
-            bag = player.bag;
-          }
-        else player (* else, no changes *)
-    | Moving ->
-        if player.nb_pieces_on_board = 3 (* if the player has only 3 pieces left, he can start flying them *)
-        then
-          {
-            phase = Flying;
-            color = player.color;
-            piece_placed = player.piece_placed;
-            nb_pieces_on_board = player.nb_pieces_on_board;
-            bag = player.bag;
-          }
-        else player (* else, no changes *)
-    | Flying -> player (* if the player is already flying, no changes *)
-
-(**
-  Private function that update the phase of both players in the game_update
-  @param game_update the game_update to update    
-*)
-let update_phase game_update =
-    {
-      board = game_update.board;
-      mill = game_update.mill;
-      player1 = update_player_phase game_update.player1 game_update.max_pieces;
-      player2 = update_player_phase game_update.player2 game_update.max_pieces;
-      game_is_changed = game_update.game_is_changed;
-      max_pieces = game_update.max_pieces;
-    }
-
-(**
   Function that init the arena between two players, and return the game_update when the game is finished
   @param p1 the first player
   @param p2 the second player
@@ -114,7 +69,7 @@ let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) 
     in
     turn
       {
-        board = init_template template;
+        board = init_board_with_template template;
         mill = false;
         player1 = private_p1;
         player2 = private_p2;

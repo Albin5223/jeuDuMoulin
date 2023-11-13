@@ -3,6 +3,19 @@ open Type
 (** Represent the number of pieces that you have to align to get a mill *)
 let nb_to_get_mill = 3
 
+(**This function return a player who has the same color that the color in argument*)
+let get_player (game_update : game_update) (color : color) : player =
+    match color with
+    | White -> game_update.player1
+    | Black -> game_update.player2
+
+let reverse_color (c : color) : color =
+    match c with
+    | Black -> White
+    | White -> Black
+
+let get_opponent game_update color = get_player game_update (reverse_color color)
+
 (**
   Function that return a none updated game
   This function is used when the move is not legit 
@@ -291,59 +304,6 @@ let move_to_coordinates (game : game_update) ((i1, j1) : coordinates) ((i2, j2) 
         }
     else not_updated_game game
 
-(** Init a start board *)
-let init_board =
-    let rec aux x =
-        let rec aux2 i j =
-            match (i, j) with
-            | 7, _ | _, 7 -> []
-            | 3, 3 -> [Wall] @ aux2 i (j + 1)
-            | 3, _ | _, 3 -> [Empty] @ aux2 i (j + 1)
-            | a, b when a = b || a + b = 6 -> [Empty] @ aux2 i (j + 1)
-            | 0, _ | 6, _ | _, 2 | _, 4 -> [Path H] @ aux2 i (j + 1)
-            | _ -> [Path V] @ aux2 i (j + 1)
-        in
-
-        if x < 7 then aux2 x 0 :: aux (x + 1) else []
-    in
-    aux 0
-
-(** Function that init a board with only the up-left quarter of it *)
-let init_board_quarter (quarter : board) : board =
-    let reverse_diagonal el =
-        match el with
-        | Path DR -> Path DL
-        | Path DL -> Path DR
-        | _ -> el
-    in
-    let rec full_board (b : board) (new_board : board) =
-        let rec half_row (row : square list) (newRow : square list) =
-            match row with
-            | [] -> []
-            | x :: [] -> newRow @ [x] @ List.rev (List.map reverse_diagonal newRow)
-            | x :: xs -> half_row xs (newRow @ [x])
-        in
-        match b with
-        | [] -> []
-        | row :: [] ->
-            new_board
-            @ [half_row row []]
-            @ List.rev
-                (List.map
-                   (fun line ->
-                     if List.exists
-                          (fun x ->
-                            match x with
-                            | Path DR | Path DL -> true
-                            | _ -> false)
-                          line
-                     then List.map reverse_diagonal line
-                     else line)
-                   new_board)
-        | row :: rs -> full_board rs (new_board @ [half_row row []])
-    in
-    full_board quarter []
-
 (** function who tests the maximum of nodes a column can have in order to tell if the point (i,j) can be a path or not *)
 let rec test_3_squares_row
     (board : board)
@@ -422,7 +382,7 @@ let rec aux_init_board (width : int) (height : int) (i : int) (nb_squares : int)
       aux_init_board width height (i + 1) nb_squares diagonal (acc @ [create_row 0 [] 0])
 
 (** Function with width height nb_squares and diagonal as arguments and creates a board with *)
-let init_board2 (width : int) (height : int) (nb_squares : int) (diagonal : bool) : board =
+let init_board (width : int) (height : int) (nb_squares : int) (diagonal : bool) : board =
     if match (width, height, nb_squares) with
        | 4, 4, _ -> true (*three men's morris like a tic-tac-toe; this version is with 2 squares and with diagonals*)
        | 8, 8, _ -> true (*six men's morris; this version is without diagonal and with 2 squares*)
@@ -485,9 +445,6 @@ let apply (game_update : game_update) (player : player) (move : move) =
     | Flying (c1, c2), Flying -> move_to_coordinates game_update c1 c2 player.color
     | _ -> not_updated_game game_update
 
-(** Represent the name of defaults board (templates) *)
-type template = Three_mens_morris | Six_mens_morris | Nine_mens_morris | Twelve_mens_morris
-
 (**
   Function that returns the max number of pieces that we can place by each player depending of the template
   @param board : the template of the board
@@ -503,12 +460,12 @@ let max_piece_from_template (board : template) : int =
   Function that init a board from a template
   @param template : the template of the board
 *)
-let init_template (template : template) : board =
+let init_board_with_template (template : template) : board =
     match template with
-    | Three_mens_morris -> init_board2 4 4 2 true
-    | Six_mens_morris -> init_board2 8 8 2 false
-    | Nine_mens_morris -> init_board2 12 12 3 false
-    | Twelve_mens_morris -> init_board2 12 12 3 true
+    | Three_mens_morris -> init_board 4 4 2 true
+    | Six_mens_morris -> init_board 8 8 2 false
+    | Nine_mens_morris -> init_board 12 12 3 false
+    | Twelve_mens_morris -> init_board 12 12 3 true
 
 (**
     This function return a bool if the player can't move
@@ -539,3 +496,48 @@ let lost (game : game_update) (player : player) : bool =
 *)
 let init_player (c : Type.color) : player =
     { phase = Placing; color = c; bag = []; piece_placed = 0; nb_pieces_on_board = 0 }
+
+(**
+  Private function which update the phase of a player if necessary
+  @param player the player to update    
+  @param max_pieces the maximum number of pieces that a player can place on the board
+*)
+let update_player_phase player max_pieces =
+    match player.phase with
+    | Placing ->
+        if player.piece_placed = max_pieces (* if the player has placed all of his pieces, he can start moving them *)
+        then
+          {
+            phase = Moving;
+            color = player.color;
+            piece_placed = player.piece_placed;
+            nb_pieces_on_board = player.nb_pieces_on_board;
+            bag = player.bag;
+          }
+        else player (* else, no changes *)
+    | Moving ->
+        if player.nb_pieces_on_board = 3 (* if the player has only 3 pieces left, he can start flying them *)
+        then
+          {
+            phase = Flying;
+            color = player.color;
+            piece_placed = player.piece_placed;
+            nb_pieces_on_board = player.nb_pieces_on_board;
+            bag = player.bag;
+          }
+        else player (* else, no changes *)
+    | Flying -> player (* if the player is already flying, no changes *)
+
+(**
+Private function that update the phase of both players in the game_update
+@param game_update the game_update to update    
+*)
+let update_phase game_update =
+    {
+      board = game_update.board;
+      mill = game_update.mill;
+      player1 = update_player_phase game_update.player1 game_update.max_pieces;
+      player2 = update_player_phase game_update.player2 game_update.max_pieces;
+      game_is_changed = game_update.game_is_changed;
+      max_pieces = game_update.max_pieces;
+    }

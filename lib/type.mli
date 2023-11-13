@@ -33,10 +33,6 @@ type player_strategie = {
     strategie_remove: game_update -> player -> coordinates;
   }
 
-val get_player : game_update -> color -> player
-
 type got_mill = board * bool
 
-val reverse_color : color -> color
-
-val get_opponent : game_update -> color -> player
+type template = Three_mens_morris | Six_mens_morris | Nine_mens_morris | Twelve_mens_morris

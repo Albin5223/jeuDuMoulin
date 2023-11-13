@@ -45,20 +45,8 @@ type player_strategie = {
     strategie_remove: game_update -> player -> coordinates;
   }
 
-(*player1 is always Black and player2 is always White  *)
-
-(**This function return a player who has the same color that the color in argument*)
-let get_player (game_update : game_update) (color : color) : player =
-    match color with
-    | White -> game_update.player1
-    | Black -> game_update.player2
-
 (** Will be returned after a move, and will let us know if the move produce a mill or not *)
 type got_mill = board * bool
 
-let reverse_color (c : color) : color =
-    match c with
-    | Black -> White
-    | White -> Black
-
-let get_opponent game_update color = get_player game_update (reverse_color color)
+(** Represent the name of defaults board (templates) *)
+type template = Three_mens_morris | Six_mens_morris | Nine_mens_morris | Twelve_mens_morris
