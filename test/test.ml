@@ -14,11 +14,6 @@ let affiche_tour_info color phase =
         Format.printf "Le tour de  WHITE\n";
         pretty_print_phase phase
 
-let show_winner color =
-    match color with
-    | Black -> Format.printf "Le vainqueur est BLACK\n"
-    | White -> Format.printf "Le vainqueur est WHITE\n"
-
 let print_move (m : direction_deplacement) =
     match m with
     | Up -> Format.printf "Up\n"
@@ -64,6 +59,13 @@ let pretty_print_phase (p : phase) =
     | Flying -> Format.printf "Phase de flying\n"
     
     *)
+(*
+let show_winner color =
+    match color with
+    | Black -> Format.printf "Le vainqueur est BLACK"
+    | White -> Format.printf "Le vainqueur est WHITE"*)
+(*TEST*)
+
 
 let equals_board (board1 : board) (board2 : board) : bool =
     let rec compare l1 l2 =
@@ -96,12 +98,14 @@ let equals_player (p1 : player) (p2 : player) : bool =
     && p1.piece_placed = p2.piece_placed
     && p1.nb_pieces_on_board = p2.nb_pieces_on_board
 
-let equals_game_update (game1 : game_update) (game2 : game_update) : bool =
+let equals_end_game (game1 : end_game) (game2 : end_game) : bool =
     equals_board game1.board game2.board
-    && game1.mill = game2.mill
-    && equals_player game1.player1 game2.player1
-    && equals_player game1.player2 game2.player2
-    && game1.game_is_changed = game2.game_is_changed
+    && equals_player game1.loser game2.loser
+    && equals_player game1.winner game2.winner
+
+let game_update_of_game (game:end_game):game_update = 
+    if game.winner.color = White then {board=game.board;mill=false;player1=game.winner;player2=game.loser;game_is_changed=false;max_pieces=game.winner.piece_placed}
+    else {board=game.board;mill=false;player1=game.loser;player2=game.winner;game_is_changed=false;max_pieces=game.winner.piece_placed}
 
 let test_config_end_game =
     let open QCheck in
@@ -113,9 +117,9 @@ let test_config_end_game =
         let player1 = player_random randomSeed in
         let player2 = player_random randomSeed in
         let game = arena player1 player2 Nine_mens_morris in
-        (cant_move game.player1 game || game.player1.nb_pieces_on_board <= 2)
-        || cant_move game.player2 game
-        || game.player2.nb_pieces_on_board <= 2)
+        let game_update = game_update_of_game game in
+        (cant_move game.loser game_update || game.loser.nb_pieces_on_board <= 2))
+        
 
 (**This test check that with the same seed, we will get the same end*)
 let testSeed =
@@ -132,7 +136,7 @@ let testSeed =
         let player1 = player_random randomSeed in
         let player2 = player_random randomSeed in
         let game2 = arena player1 player2 Nine_mens_morris in
-        equals_game_update game1 game2)
+        equals_end_game game1 game2)
 
 let square_reachable_from_coordinates (i, j) (board : board) : board =
     let rec allReachable_from_coordinates (i, j) (board : board) (acc : direction_deplacement list) =
@@ -248,7 +252,7 @@ let test_error_player =
 
 let () =
     let open Alcotest in
-    run "SEED"
+    run "TEST"
       [
         ("Test with Seed generate", [QCheck_alcotest.to_alcotest testSeed]);
         ("Test configuration end game", [QCheck_alcotest.to_alcotest test_config_end_game]);

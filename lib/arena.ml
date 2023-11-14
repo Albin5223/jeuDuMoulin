@@ -42,7 +42,7 @@ let private_play game_update (player1 : player_strategie) (private_player1 : pla
   @param p2 the second player
   @param template the template of the board    
 *)
-let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) =
+let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) :end_game=
     (* we init the private players, p1 is always Black *)
     let private_p1 = init_player White in
     (* we init the private players, p2 is always White *)
@@ -53,7 +53,7 @@ let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) 
         let game_update = update_phase game_update in
         (* if the player1 has lost, we return the game_update *)
         if lost game_update game_update.player1
-        then game_update
+        then {winner=private_p2;loser=private_p1;board=game_update.board}
         else
           (* we play the turn for player1 *)
           let newGU = private_play game_update p1 game_update.player1 game_update.player2 in
@@ -61,7 +61,7 @@ let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) 
           let newGU = update_phase newGU in
           (* if the player2 has lost, we return the game_update *)
           if lost newGU newGU.player2
-          then newGU
+          then {winner=private_p1;loser=private_p2;board=game_update.board}
           else
             (* else, we play the turn for player2 *)
             let newGU = private_play newGU p2 newGU.player2 newGU.player1 in
