@@ -1,9 +1,9 @@
-val initPlayer : Type.color -> Type.player
-val max_pieces : int
-val reverseColor : Type.color -> Type.color
-val cantMove : Type.player -> Type.gameUpdate -> bool -> bool
-val playRandomly :
-  (int -> int) ->
-  Type.player ->
-  Type.player -> Type.gameUpdate -> Type.phase -> Type.gameUpdate
-val lost : Type.gameUpdate -> Type.player -> bool -> Type.phase -> bool
+val init_player : Type.color -> Type.player
+
+val cant_move : Type.player -> Type.game_update -> bool
+
+val player_random : (int -> int) -> Type.player_strategie
+
+val lost : Type.game_update -> Type.player -> bool
+
+val determine_best_move : Type.game_update -> int -> Type.move

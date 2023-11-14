@@ -1,52 +1,286 @@
 open Type;;
 open Board;;
 
-let initPlayer (c : Type.color) : player = {color = c; bag = []; piecePlaced = 0; nbPiecesOnBoard = 0};;
+type node = {value : int; move : move; player1 : player; player2 : player}
 
-(** The max amount of pieces that a player can hold *)
-let max_pieces = 9
+type tree =
+    | Leaf
+    | Nodes of node * tree list
 
-let reverseColor (c : Type.color) : Type.color =
-  match c with
-  | Type.Black -> Type.White
-  | Type.White -> Type.Black
+let getNode (tree : tree) : node =
+    match tree with
+    | Leaf -> raise (Invalid_argument "getNode with an Empty tree !")
+    | Nodes(node,_) -> node
 
-let cantMove (player : player) (game : gameUpdate) (diagonal : bool) : bool =
-  let rec aux (player : player) (game : gameUpdate) (bag : coordinates list) (diagonal : bool) : bool =
-    match bag with
-    | [] -> true
-    | (x,y) :: xs -> List.length (possibleMoves game (x,y) player.color diagonal) = 0 && (aux player game xs diagonal)
-  in
-  aux player game player.bag diagonal
+let getChilds (tree : tree) : tree list =
+    match tree with
+    | Leaf -> raise (Invalid_argument "getChilds with an Empty tree !")
+    | Nodes(_,childs) -> childs
 
-let rec playRandomly (random) (player : player) (opponent : player) (game : gameUpdate) (current_phase : phase) : gameUpdate =
-  if current_phase = Placing then 
-    let i = random board_size in
-    let j =  random board_size in
-    let tmp = placeStartPiece game (i,j) player.color in
-    if tmp.mill
-      then eliminatePiece game (List.nth (opponent.bag) (random opponent.nbPiecesOnBoard)) opponent.color
-    else if not tmp.gameIsChanged then playRandomly random player opponent game current_phase (*if we choose coordinates where a piece is already here or a path or a wall*)
-    else tmp
+(** merge a tree with his child and return a new tree*)
+let merge (treeFather : tree) (treeChild : tree) : tree =
+    match treeFather with
+    | Leaf -> Leaf
+    | Nodes(node,childs) -> Nodes(node,childs@[treeChild])
 
-  else if current_phase = Moving || current_phase = Flying(opponent.color) then (*either the bot can just move or the opponent is flying but not the bot*)
-    let (x,y) = (List.nth player.bag (random player.nbPiecesOnBoard)) in
-    let movesPossible = possibleMoves game (x,y) player.color false in
-    if List.length movesPossible = 0 then playRandomly random player opponent game current_phase (*if we have a unmovable piece, we examine another piece*)
-    else
-      let tmp = moveToDirection game (x,y) (List.nth movesPossible (random (List.length movesPossible))) player.color in
-      if tmp.mill 
-        then eliminatePiece game (List.nth (opponent.bag) (random opponent.nbPiecesOnBoard)) opponent.color
-      else tmp
+(**
+    This function init a player based on a color
+    @param c : the color of the player   
+*)
+let init_player (c : Type.color) : player =
+    { phase = Placing; color = c; bag = []; piece_placed = 0; nb_pieces_on_board = 0 }
 
-  else (*this means either the bot is flying or both players are flying*)
-    let i = random board_size in
-    let j = random board_size in
-    let tmp = moveToCoordinates game ((List.nth (player.bag) (random player.nbPiecesOnBoard))) (i,j) player.color in
-    if tmp.mill then
-      eliminatePiece game (List.nth (opponent.bag) (random opponent.nbPiecesOnBoard)) opponent.color
-    else if not tmp.gameIsChanged then playRandomly random player opponent game current_phase (*if we choose coordinates inside a wall or a path*)
-    else tmp
+(**
+    This function return a bool if the player can't move
+    @param player : the player
+    @param game : the game
+*)
+let cant_move (player : player) (game : game_update) : bool =
+    let rec aux (player : player) (game : game_update) (bag : coordinates list) : bool =
+        match bag with
+        | [] -> true
+        | (x, y) :: xs -> List.length (possible_moves game (x, y) player.color) = 0 && aux player game xs
+    in
+    aux player game player.bag
 
-let lost (game : gameUpdate) (player : player) (diagonal : bool) (current_phase : phase) : bool =
-  ((current_phase = Moving || current_phase = Flying(reverseColor player.color)) && cantMove player game diagonal) || player.nbPiecesOnBoard <= 2
+(**
+    Player who plays ramdomly
+    @param random : the seed of the random
+*)
+let player_random (random : int -> int) : player_strategie =
+    (* The placing/moving strategy is here *)
+    let strategie_play (game_update : game_update) (player : player) : move =
+        match player.phase with
+        | Placing ->
+            (* When the bot is in Placing phase, he chooses a random square where to place, and repeat that until he finds a correct position *)
+            let rec choise_coord () =
+                let i = random (List.length game_update.board) in
+                let j = random (List.length game_update.board) in
+                match get_square game_update.board (i, j) with
+                | Some Empty -> (i, j)
+                | _ -> choise_coord ()
+            in
+            let coord = choise_coord () in
+            Placing coord
+        | Moving ->
+            (* When the bot is in Moving phase, he chooses a random piece in his bag, and if the piece is not blocked, he moves it to a random direction, else, repeat the operation *)
+            let rec choise_mouv () =
+                let i = random (List.length player.bag) in
+                let coord = List.nth player.bag i in
+                let possible_move = possible_moves game_update coord player.color in
+                if List.length possible_move = 0
+                then choise_mouv ()
+                else
+                  let j = random (List.length possible_move) in
+                  let dir = List.nth possible_move j in
+                  Moving (coord, dir)
+            in
+            choise_mouv ()
+        | Flying ->
+            (* When the bot is in Flying phase, he chooses a random square where to place, and repeat that until he finds a correct position, then chooses a random piece in his bag to place it *)
+            let rec choise_coord () =
+                let i = random (List.length game_update.board) in
+                let j = random (List.length game_update.board) in
+                match get_square game_update.board (i, j) with
+                | Some Empty -> (i, j)
+                | _ -> choise_coord ()
+            in
+            let coord_arrive = choise_coord () in
+            let i = random (List.length player.bag) in
+            let depart = List.nth player.bag i in
+            Flying (depart, coord_arrive)
+    in
+    (* The removing strategy is here *)
+    let strategie_remove (game_update : game_update) (player : player) : coordinates =
+        let i = random (List.length (get_opponent game_update player.color).bag) in
+        List.nth (get_opponent game_update player.color).bag i
+    in
+    { strategie_play; strategie_remove }
+
+(**
+    Function that return a bool if the player lost
+    @param game : the game
+    @param player : the player    
+*)
+let lost (game : game_update) (player : player) : bool =
+    match player.phase with
+    | Moving -> cant_move player game
+    | _ -> player.nb_pieces_on_board <= 2 && player.piece_placed = game.max_pieces
+
+
+(*
+----------------------------------------------------------------------------
+AI PART :
+
+
+(it is admitted that the current bot we working on is always white)
+
+*)
+
+(**protype of an evalutation function for the AI*)
+let rate_value (node : node) : int = node.player1.nb_pieces_on_board - node.player2.nb_pieces_on_board
+
+(** return the minimum value of all the childs of a tree*)
+let minimax (tree : tree) : int =
+    let rec aux (isMin : bool) (l : tree list) (minOrMax : float) : int =
+        match l with
+        | [] -> int_of_float minOrMax
+        | tree :: xs -> (
+            if isMin then aux isMin xs (min (float_of_int (getNode tree).value) minOrMax)
+            else aux isMin xs (max (float_of_int (getNode tree).value) minOrMax)
+        )
+    in
+    match tree with
+    | Leaf -> raise (Failure "Big problem dude this is not supposed to happen")
+    | Nodes(node,_) -> (
+        if (node.player1.color = Black) then
+            aux true (getChilds tree) max_float
+        else aux false (getChilds tree) min_float
+    )
+
+(**private function only use is in determine_best_move.
+    This function create the tree we'll be working on and tests every possible move of the bot and of the opponent recursively*)
+let rec create_next_nodes (depth : int) (accTree : tree) (gameUpdate : game_update) : tree =
+    if depth = 0 then accTree
+    else (
+        (*so if the player has to remove a marble*)
+        if (gameUpdate.mill) then (
+            let rec loop (bagP : coordinates list) (accTreeFinal : tree) =
+                match bagP with
+                | [] -> accTreeFinal
+                | (x,y) :: xs -> (
+                    let gameUpdate2 = eliminate_piece (gameUpdate) (x,y) (gameUpdate.player1.color) in
+                    if (depth = 1 || lost (gameUpdate2) (gameUpdate2.player1)) then (
+                        let child = create_next_nodes (depth-1) (Nodes({value=rate_value (getNode accTree);move=Removing((x,y));player1=gameUpdate2.player1;player2=gameUpdate2.player2},[])) ({board=gameUpdate2.board;mill=gameUpdate2.mill;player1=gameUpdate2.player1;player2=gameUpdate2.player2;game_is_changed=gameUpdate2.game_is_changed;max_pieces=gameUpdate2.max_pieces}) in
+                        loop (xs) (merge accTreeFinal child)
+                    )
+                    else (
+                        let v = (minimax accTree) in
+                        (*a voir si on doit pas merge accTree et le node qu'on fait avec gameUpdate2 avant de faire la recursion*)
+                        let child = create_next_nodes (depth-1) (Nodes({value=v;move=Removing((x,y));player1=gameUpdate2.player1;player2=gameUpdate2.player2},[])) ({board=gameUpdate2.board;mill=gameUpdate2.mill;player1=gameUpdate2.player1;player2=gameUpdate2.player2;game_is_changed=gameUpdate2.game_is_changed;max_pieces=gameUpdate2.max_pieces}) in
+                        loop (xs) (merge accTreeFinal child)
+                    )
+                )
+            in
+            loop (gameUpdate.player1.bag) accTree
+            (*process every opponent marble because we need opponent's coordinates and not ours*)
+        )
+
+
+        (*Phase placing*)
+        else if gameUpdate.player1.phase = Placing then (
+            let rec loop (board2 : board) (i : int) (accTreeFinal : tree) =
+                match board2 with
+                | [] -> accTreeFinal
+                | x :: xs -> (
+                    let rec loop2 (row : square list) (j : int) (accTreeFinal2 : tree) =
+                        match row with
+                        | [] -> accTreeFinal2
+                        | Empty :: xs2 -> (
+                            if depth = 1 then (
+                                let gameUpdate2 = place_start_piece (gameUpdate) (i,j) gameUpdate.player1.color in
+                                let child = create_next_nodes (depth-1) (Nodes({value=rate_value (getNode accTree);move=Placing((i,j));player1=gameUpdate2.player2;player2=gameUpdate2.player1},[])) ({board=gameUpdate2.board;mill=gameUpdate2.mill;player1=gameUpdate2.player2;player2=gameUpdate2.player1;game_is_changed=gameUpdate2.game_is_changed;max_pieces=gameUpdate2.max_pieces}) in
+                                loop2 xs2 (j+1) (merge accTreeFinal2 child) 
+                            )
+                            else (
+                                let gameUpdate2 = place_start_piece (gameUpdate) (i,j) gameUpdate.player1.color in
+                                let v = (minimax accTree) in
+                                let child = create_next_nodes (depth-1) (Nodes({value=v;move=Placing((i,j));player1=gameUpdate2.player2;player2=gameUpdate2.player1},[])) ({board=gameUpdate2.board;mill=gameUpdate2.mill;player1=gameUpdate2.player2;player2=gameUpdate2.player1;game_is_changed=gameUpdate2.game_is_changed;max_pieces=gameUpdate2.max_pieces}) in
+                                loop2 xs2 (j+1) (merge accTreeFinal2 child)
+                            )
+                        )
+                        | _ :: xs2 -> loop2 xs2 (j+1) (accTreeFinal2)
+            in
+            let child = loop2 x 0 (accTreeFinal) in
+            loop (xs) (i+1) (merge accTreeFinal child)
+            )
+        in
+        loop gameUpdate.board 0 (accTree)
+        )
+
+
+        (*Phase moving*)
+        else if gameUpdate.player1.phase = Moving then (
+            let rec loop (bagP : coordinates list) (accTreeFinal : tree) =
+                match bagP with
+                | [] -> accTreeFinal
+                | (x,y) :: xs -> (
+                    let rec loop2 (possiblesMoves : direction_deplacement list) (accTreeFinal2 : tree) =
+                        match possiblesMoves with
+                        | [] -> accTreeFinal2
+                        | dir :: xs2 -> (
+                            if depth = 1 then (
+                                let (x2,y2) = Option.get (move_from_direction (gameUpdate.board) (x,y) (dir)) in
+                                let gameUpdate2 = move_to_coordinates (gameUpdate) (x,y) (x2,y2) gameUpdate.player1.color in
+                                let child = create_next_nodes (depth-1) (Nodes({value=rate_value (getNode accTree);move=Moving((x,y),dir);player1=gameUpdate.player2;player2=gameUpdate.player1},[])) ({board=gameUpdate2.board;mill=gameUpdate2.mill;player1=gameUpdate2.player2;player2=gameUpdate2.player1;game_is_changed=gameUpdate2.game_is_changed;max_pieces=gameUpdate2.max_pieces}) in
+                                loop2 xs2 (merge accTreeFinal2 child)
+                            )
+                            else (
+                                let (x2,y2) = Option.get (move_from_direction (gameUpdate.board) (x,y) (dir)) in
+                                let gameUpdate2 = move_to_coordinates (gameUpdate) (x,y) (x2,y2) gameUpdate.player1.color in
+                                let v = (minimax accTree) in
+                                let child = create_next_nodes (depth-1) (Nodes({value=v;move=Moving((x,y),dir);player1=gameUpdate.player2;player2=gameUpdate.player1},[])) ({board=gameUpdate2.board;mill=gameUpdate2.mill;player1=gameUpdate2.player2;player2=gameUpdate2.player1;game_is_changed=gameUpdate2.game_is_changed;max_pieces=gameUpdate2.max_pieces}) in
+                                loop2 xs2 (merge accTreeFinal2 child)
+                            )
+                        )
+                    in
+                    let child = loop2 (possible_moves gameUpdate (x,y) (gameUpdate.player1.color)) (accTreeFinal) in
+                    loop xs (merge accTreeFinal child)
+                )
+            in
+            loop gameUpdate.player1.bag accTree
+        )
+
+
+        (*so if the current phase is Flying*)
+        else (
+            let rec loop (bagP : coordinates list) (accTreeFinal : tree) =
+                match bagP with
+                | [] -> accTreeFinal
+                | (x,y) :: xs-> (
+                    let rec loop2 (board2 : board) (i : int) (accTreeFinal2 : tree) =
+                        match board2 with
+                        | [] -> accTreeFinal2
+                        | l :: xs2 -> (
+                            let rec loop3 (row : square list) (j : int) (accTreeFinal3 : tree) =
+                                match row with
+                                | [] -> accTreeFinal3
+                                | Empty :: xs3 -> (
+                                    if (depth = 1) then (
+                                        let gameUpdate2 = move_to_coordinates (gameUpdate) ((x,y)) ((i,j)) (gameUpdate.player1.color) in
+                                        let child = create_next_nodes (depth-1) (Nodes({value=rate_value (getNode accTree);move=Flying((x,y),(i,j));player1=gameUpdate.player2;player2=gameUpdate.player1},[])) ({board=gameUpdate2.board;mill=gameUpdate2.mill;player1=gameUpdate2.player2;player2=gameUpdate2.player1;game_is_changed=gameUpdate2.game_is_changed;max_pieces=gameUpdate2.max_pieces}) in
+                                        loop3 (xs3) (j+1) (merge accTreeFinal3 child)
+                                    )
+                                    else (
+                                        let gameUpdate2 = move_to_coordinates (gameUpdate) ((x,y)) ((i,j)) (gameUpdate.player1.color) in
+                                        let v = (minimax accTree) in
+                                        let child = create_next_nodes (depth-1) (Nodes({value=v;move=Flying((x,y),(i,j));player1=gameUpdate.player2;player2=gameUpdate.player1},[])) ({board=gameUpdate2.board;mill=gameUpdate2.mill;player1=gameUpdate2.player2;player2=gameUpdate2.player1;game_is_changed=gameUpdate2.game_is_changed;max_pieces=gameUpdate2.max_pieces}) in
+                                        loop3 (xs3) (j+1) (merge accTreeFinal3 child)
+                                    )
+                                )
+                                | _ :: xs3 -> loop3 (xs3) (j+1) (accTreeFinal3)
+                            in
+                            let child = loop3 (l) (0) (accTreeFinal2) in
+                            loop2 (xs2) (i+1) (merge accTreeFinal2 child)
+                        )
+                    in
+                    let child = loop2 (gameUpdate.board) (0) (accTreeFinal) in
+                    loop (xs) (merge accTreeFinal child)
+                )
+            in
+            loop (gameUpdate.player1.bag) (accTree)
+        )
+    )
+
+let determine_best_move (gameUpdate : game_update) (depth : int) : move =
+    let tree = create_next_nodes depth (Nodes({value=0;move=Placing((0,0));player1=gameUpdate.player1;player2=gameUpdate.player2},[])) (gameUpdate) in
+    let rec aux (l : tree list) (maxValue : int) (maxNode : node) : node =
+        match l with
+        | [] -> maxNode
+        | tree :: xs -> (
+            if (getNode tree).value > maxValue then aux xs ((getNode tree).value) (getNode tree)
+            else aux xs maxValue maxNode
+        )
+    in
+    let bestNode = aux (getChilds tree) (max_int) ({value=0;move=Placing((0,0));player1=gameUpdate.player1;player2=gameUpdate.player2}) in
+    bestNode.move
