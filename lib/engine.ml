@@ -21,7 +21,7 @@ let get_opponent game_update color = get_player game_update (reverse_color color
   This function is used when the move is not legit 
   @param game : the game state  
 *)
-let not_updated_game (game:game_update) :game_update=
+let not_updated_game (game : game_update) : game_update =
     {
       board = game.board;
       mill = false;
@@ -438,7 +438,7 @@ let possible_moves (game : game_update) ((i, j) : coordinates) (player : color) 
   @param player : the player that wants to apply the move
   @param move : the move to apply
 *)
-let apply (game_update : game_update) (player : player) (move : move) :game_update=
+let apply (game_update : game_update) (player : player) (move : move) : game_update =
     match (move, player.phase) with
     | Placing c, Placing -> place_start_piece game_update c player.color
     | Moving (c, dir), Moving -> move_to_direction game_update c dir player.color
@@ -532,7 +532,7 @@ let update_player_phase player max_pieces =
 Private function that update the phase of both players in the game_update
 @param game_update the game_update to update    
 *)
-let update_phase (game_update:game_update) :game_update =
+let update_phase (game_update : game_update) : game_update =
     {
       board = game_update.board;
       mill = game_update.mill;

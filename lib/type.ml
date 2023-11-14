@@ -53,8 +53,4 @@ type template = Three_mens_morris | Six_mens_morris | Nine_mens_morris | Twelve_
 
 (**This type will be used after end game*)
 
-type end_game = {
-  board:board;
-  winner: player;
-  loser: player;
-}
+type end_game = { board: board; winner: player; loser: player }

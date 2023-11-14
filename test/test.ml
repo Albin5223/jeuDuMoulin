@@ -66,7 +66,6 @@ let show_winner color =
     | White -> Format.printf "Le vainqueur est WHITE"*)
 (*TEST*)
 
-
 let equals_board (board1 : board) (board2 : board) : bool =
     let rec compare l1 l2 =
         match (l1, l2) with
@@ -103,9 +102,26 @@ let equals_end_game (game1 : end_game) (game2 : end_game) : bool =
     && equals_player game1.loser game2.loser
     && equals_player game1.winner game2.winner
 
-let game_update_of_game (game:end_game):game_update = 
-    if game.winner.color = White then {board=game.board;mill=false;player1=game.winner;player2=game.loser;game_is_changed=false;max_pieces=game.winner.piece_placed}
-    else {board=game.board;mill=false;player1=game.loser;player2=game.winner;game_is_changed=false;max_pieces=game.winner.piece_placed}
+let game_update_of_game (game : end_game) : game_update =
+    if game.winner.color = White
+    then
+      {
+        board = game.board;
+        mill = false;
+        player1 = game.winner;
+        player2 = game.loser;
+        game_is_changed = false;
+        max_pieces = game.winner.piece_placed;
+      }
+    else
+      {
+        board = game.board;
+        mill = false;
+        player1 = game.loser;
+        player2 = game.winner;
+        game_is_changed = false;
+        max_pieces = game.winner.piece_placed;
+      }
 
 let test_config_end_game =
     let open QCheck in
@@ -118,8 +134,7 @@ let test_config_end_game =
         let player2 = player_random randomSeed in
         let game = arena player1 player2 Nine_mens_morris in
         let game_update = game_update_of_game game in
-        (cant_move game.loser game_update || game.loser.nb_pieces_on_board <= 2))
-        
+        cant_move game.loser game_update || game.loser.nb_pieces_on_board <= 2)
 
 (**This test check that with the same seed, we will get the same end*)
 let testSeed =

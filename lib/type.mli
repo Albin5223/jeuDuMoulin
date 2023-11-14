@@ -37,8 +37,4 @@ type got_mill = board * bool
 
 type template = Three_mens_morris | Six_mens_morris | Nine_mens_morris | Twelve_mens_morris
 
-type end_game = {
-  board:board;
-  winner: player;
-  loser: player;
-}
+type end_game = { board: board; winner: player; loser: player }
