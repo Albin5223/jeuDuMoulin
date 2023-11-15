@@ -50,3 +50,7 @@ type got_mill = board * bool
 
 (** Represent the name of defaults board (templates) *)
 type template = Three_mens_morris | Six_mens_morris | Nine_mens_morris | Twelve_mens_morris
+
+(**This type will be used after end game*)
+
+type end_game = { board: board; winner: player; loser: player }

@@ -7,6 +7,6 @@ val init_player_with_strategie :
   (Type.game_update -> Type.player -> Type.coordinates) ->
   Type.player_strategie
 
-val arena : Type.player_strategie -> Type.player_strategie -> Type.template -> Type.game_update
+val arena : Type.player_strategie -> Type.player_strategie -> Type.template -> Type.end_game
 
 val player_random : (int -> int) -> Type.player_strategie
