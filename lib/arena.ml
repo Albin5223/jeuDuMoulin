@@ -11,8 +11,8 @@ exception Invalid_Strategy of string
   @param strategie_remove the strategie to remove an opponent piece (when a mill is formed)
 *)
 let init_player_with_strategie
-    (strategie_play : game_update -> player -> move)
-    (strategie_remove : game_update -> player -> coordinates) =
+    (strategie_play : game_update -> player -> action)
+    (strategie_remove : game_update -> player -> action) =
     { strategie_play; strategie_remove }
 
 (**
@@ -31,8 +31,11 @@ let private_play game_update (player1 : player_strategie) (private_player1 : pla
       else if newGU.mill
       then
         let removed = player1.strategie_remove newGU private_player1 in
-        let newGU = eliminate_piece newGU removed private_player2.color in
-        if not newGU.game_is_changed then raise (Not_Allowed "Illegal move remove") else newGU
+        match removed with
+        | Remove (x, y) ->
+            let newGU = eliminate_piece newGU (x, y) private_player2.color in
+            if not newGU.game_is_changed then raise (Not_Allowed "Illegal move remove") else newGU
+        | _ -> raise (Invalid_Strategy " Strategy invalid")
       else newGU
     with _ -> raise (Invalid_Strategy "Strategy invalid")
 
@@ -83,7 +86,7 @@ let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) 
 *)
 let player_random (random : int -> int) : player_strategie =
     (* The placing/moving strategy is here *)
-    let strategie_play (game_update : game_update) (player : player) : move =
+    let strategie_play (game_update : game_update) (player : player) : action =
         match player.phase with
         | Placing ->
             (* When the bot is in Placing phase, he chooses a random square where to place, and repeat that until he finds a correct position *)
@@ -125,8 +128,130 @@ let player_random (random : int -> int) : player_strategie =
             Flying (depart, coord_arrive)
     in
     (* The removing strategy is here *)
-    let strategie_remove (game_update : game_update) (player : player) : coordinates =
+    let strategie_remove (game_update : game_update) (player : player) : action =
         let i = random (List.length (get_opponent game_update player.color).bag) in
-        List.nth (get_opponent game_update player.color).bag i
+        Remove (List.nth (get_opponent game_update player.color).bag i)
     in
+    { strategie_play; strategie_remove }
+
+let rec read (s : string) : int =
+    let () = Format.printf "%s@." s in
+    try read_int ()
+    with Failure _ ->
+      let () = print_endline "please enter an int" in
+      read s
+
+(**private function*)
+let give_direction (dir : direction_deplacement) (l : direction_deplacement list) : string =
+    try
+      let x = List.find (fun x -> x = dir) l in
+      match x with
+      | Up_left -> "1  "
+      | Up -> " 2 "
+      | Up_right -> "  3"
+      | Left -> "4  "
+      | Right -> "  5"
+      | Down_left -> "6  "
+      | Down -> " 7 "
+      | _ -> "  8"
+    with Not_found -> "   "
+
+(**private function*)
+let affiche_dir ((i, j) : coordinates) (game : game_update) (player : color) : unit =
+    let deplacements = possible_moves game (i, j) player in
+    let l1 =
+        give_direction Up_left deplacements ^ give_direction Up deplacements ^ give_direction Up_right deplacements
+    in
+    let l2 = give_direction Left deplacements ^ " x " ^ give_direction Right deplacements in
+    let l3 =
+        give_direction Down_left deplacements
+        ^ give_direction Down deplacements
+        ^ give_direction Down_right deplacements
+    in
+    print_endline l1;
+    print_endline l2;
+    print_endline l3
+
+let player_human =
+    let strategie_play (game_update : game_update) (player : player) : action =
+        let () = pretty_print_board game_update.board in
+        match player.phase with
+        | Placing ->
+            let i = read "in which line do you want to place your man ? (i) : " in
+            let j = read "in which column do you want to place your man ? : (j) " in
+            Placing (traductor (i, j) (List.length (List.nth game_update.board 0) - 1))
+        | Moving ->
+            let get_cord =
+                let i = read "in which line is the man you want to move ? (i) : " in
+                let j = read "in which column is the man you want to move ? : (j) " in
+                traductor (i, j) (List.length (List.nth game_update.board 0) - 1)
+            in
+
+            let rec deplace ((i, j) : coordinates) (col : color) =
+                let () = affiche_dir (i, j) game_update col in
+                let intDir = read "what direction do you choose ? : " in
+                try
+                  match intDir with
+                  | 1 -> Up_left
+                  | 2 -> Up
+                  | 3 -> Up_right
+                  | 4 -> Left
+                  | 5 -> Right
+                  | 6 -> Down_left
+                  | 7 -> Down
+                  | 8 -> Down_right
+                  | _ -> raise Not_found
+                with Not_found ->
+                  let () = raise (Not_Allowed "movement impossible ") in
+                  deplace (i, j) col
+            in
+            let coord = get_cord in
+            let dir = deplace coord player.color in
+            Moving (coord, dir)
+        | Flying ->
+            let rec choice_start board =
+                let i = read "in which line you want to move it ? (i) : " in
+                let j = read "in which column you want to move it ? : (j) " in
+                try
+                  match get_square board (traductor (i, j) (List.length (List.nth game_update.board 0))) with
+                  | Some (Color x) ->
+                      if x = player.color
+                      then traductor (i, j) (List.length (List.nth game_update.board 0))
+                      else raise (Not_Allowed " You can't move an enemy man")
+                  | _ -> raise (Not_Allowed " Case is not valid")
+                with Not_Allowed x ->
+                  let () = Format.printf "%s@." x in
+                  choice_start board
+            in
+
+            let rec choice_end board =
+                let i = read "in which line is the man you want to move ? (i) : " in
+                let j = read "in which column is the man you want to move ? : (j) " in
+                try
+                  match get_square board (traductor (i, j) (List.length (List.nth game_update.board 0))) with
+                  | Some Empty -> traductor (i, j) (List.length (List.nth game_update.board 0))
+                  | _ -> raise (Not_Allowed " Case is not Empty")
+                with Not_Allowed x ->
+                  let () = Format.printf "%s@." x in
+                  choice_end board
+            in
+
+            Flying (choice_start game_update.board, choice_end game_update.board)
+    in
+    let rec strategie_remove (game_update : game_update) (player : player) : action =
+        let i = read "in which line is the man you want to remove ? (i) : " in
+        let j = read "in which column is the man you want to remove ? : (j) " in
+        let coord = traductor (i, j) (List.length (List.nth game_update.board 0)) in
+        try
+          match get_square game_update.board coord with
+          | Some (Color x) ->
+              if x = reverse_color player.color
+              then Remove (traductor (i, j) (List.length (List.nth game_update.board 0) - 1))
+              else raise (Not_Allowed " You can't destruct your own man")
+          | _ -> raise (Not_Allowed "")
+        with Not_Allowed x ->
+          let () = Format.printf "%s@." x in
+          strategie_remove game_update player
+    in
+
     { strategie_play; strategie_remove }

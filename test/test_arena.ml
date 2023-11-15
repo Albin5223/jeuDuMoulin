@@ -220,7 +220,7 @@ let test_reachable =
 
 let player_random_dumb (random : int -> int) : player_strategie =
     (* The placing/moving strategy is here *)
-    let strategie_play (game_update : game_update) (player : player) : move =
+    let strategie_play (game_update : game_update) (player : player) : action =
         match player.phase with
         | Placing ->
             (* We also allow the bot to go outside the board by 1 square (to make him very dumb)*)
@@ -244,9 +244,9 @@ let player_random_dumb (random : int -> int) : player_strategie =
             Flying (depart, coord_arrive)
     in
     (* The removing strategy is here *)
-    let strategie_remove (game_update : game_update) (player : player) : coordinates =
+    let strategie_remove (game_update : game_update) (player : player) : action =
         let i = random (List.length (get_opponent game_update player.color).bag) in
-        List.nth (get_opponent game_update player.color).bag i
+        Remove (List.nth (get_opponent game_update player.color).bag i)
     in
     { strategie_play; strategie_remove }
 
