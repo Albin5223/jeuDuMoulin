@@ -64,7 +64,7 @@ let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) 
           let newGU = update_phase newGU in
           (* if the player2 has lost, we return the game_update *)
           if lost newGU newGU.player2
-          then { winner = private_p1; loser = private_p2; board = game_update.board }
+          then { winner = private_p1; loser = private_p2; board = newGU.board }
           else
             (* else, we play the turn for player2 *)
             let newGU = private_play newGU p2 newGU.player2 newGU.player1 in
@@ -146,15 +146,15 @@ let give_direction (dir : direction_deplacement) (l : direction_deplacement list
     try
       let x = List.find (fun x -> x = dir) l in
       match x with
-      | Up_left -> "1"
-      | Up -> "2"
-      | Up_right -> "3"
-      | Left -> "4"
-      | Right -> "5"
-      | Down_left -> "6"
-      | Down -> "7"
-      | _ -> "8"
-    with Not_found -> "#"
+      | Up_left -> " 1 "
+      | Up -> " 2 "
+      | Up_right -> " 3 "
+      | Left -> " 4 "
+      | Right -> " 5 "
+      | Down_left -> " 6 "
+      | Down -> " 7 "
+      | _ -> " 8 "
+    with Not_found -> " # "
 
 (**private function*)
 let affiche_dir ((i, j) : coordinates) (game : game_update) (player : color) : unit =
@@ -162,7 +162,7 @@ let affiche_dir ((i, j) : coordinates) (game : game_update) (player : color) : u
     let l1 =
         give_direction Up_left deplacements ^ give_direction Up deplacements ^ give_direction Up_right deplacements
     in
-    let l2 = give_direction Left deplacements ^ "x" ^ give_direction Right deplacements in
+    let l2 = give_direction Left deplacements ^ " x " ^ give_direction Right deplacements in
     let l3 =
         give_direction Down_left deplacements
         ^ give_direction Down deplacements
@@ -186,16 +186,13 @@ let player_human =
                 let () = Format.printf "Invalid position@." in
                 strategie_play game_update player)
         | Moving ->
-            let get_cord =
+            let rec move () : coordinates * direction_deplacement =
                 let i = read "in which line is the man you want to move ? (i) : " in
                 let j = read "in which column is the man you want to move ? (j) : " in
-                traductor (i, j) (List.length (List.nth game_update.board 0) - 1)
-            in
-
-            let rec deplace ((i, j) : coordinates) (col : color) =
-                let () = affiche_dir (i, j) game_update col in
+                let coord = traductor (i, j) (List.length (List.nth game_update.board 0) - 1) in
+                let () = affiche_dir coord game_update player.color in
                 let intDir = read "what direction do you choose ? : " in
-                try
+                ( coord,
                   match intDir with
                   | 1 -> Up_left
                   | 2 -> Up
@@ -205,14 +202,16 @@ let player_human =
                   | 6 -> Down_left
                   | 7 -> Down
                   | 8 -> Down_right
-                  | _ -> raise Not_found
-                with Not_found ->
-                  let () = raise (Not_Allowed "movement impossible ") in
-                  deplace (i, j) col
+                  | _ -> (
+                      match move () with
+                      | _, dir -> dir) )
             in
-            let coord = get_cord in
-            let dir = deplace coord player.color in
-            Moving (coord, dir)
+            let coord, dir = move () in
+            (try let _ = List.find (fun x -> x = dir) (possible_moves game_update coord player.color) in Moving (coord, dir) with
+            | Not_found ->
+              let () = Format.printf "Invalid direction@." in
+              let coord, dir = move () in
+              Moving (coord, dir))
         | Flying ->
             let rec choice_start board =
                 let i = read "in which line you want to move it ? (i) : " in
