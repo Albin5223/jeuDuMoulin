@@ -158,6 +158,13 @@ build:
     - if [ "$DUNE_DOC_TARGETS" != "" ]; then dune build $DUNE_FLAGS $DUNE_DOC_TARGETS; else echo "skipped (DUNE_DOC_TARGETS is empty)"; fi
     - echo -e "section_end:`date +%s`:project_doc\r\e[0K"
 
+    - echo -e "section_start:`date +%s`:project_format\r\e[0K check project format"
+    - echo -e "Installing ocamlformat" && opam install ocamlformat --yes
+    - if [ "$DUNE_DOC_TARGETS" != "" ];
+      then dune build @fmt $DUNE_BUILD_TARGETS $DUNE_TEST_TARGETS $DUNE_FLAGS --auto-promote || (echo "The code is not properly formatted" && exit 1);
+      else echo "skipped ( AUNE_BUILD_TARGETS or DUNE_TEST_TARGETS is empty)"; fi
+    - echo -e "section_end:`date +%s`:project_format\r\e[0K"
+
     - echo -e "section_start:`date +%s`:artifacts\r\e[0K populating the artifacts"
     - mkdir -p $ARTIFACTS
     - >

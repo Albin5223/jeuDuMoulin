@@ -1,1 +1,1 @@
-lib/type.ml: Format List
+lib/type.ml:
