@@ -6,4 +6,4 @@ val player_random : (int -> int) -> Type.player_strategie
 
 val lost : Type.game_update -> Type.player -> bool
 
-val determine_best_move : Type.game_update -> int -> Type.move
+val determine_best_move : int -> Type.game_update -> Type.player -> Type.move

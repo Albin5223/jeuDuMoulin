@@ -11,7 +11,7 @@ exception Not_Allowed of string
 *)
 let init_player_with_strategie
     (strategie_play : game_update -> player -> move)
-    (strategie_remove : game_update -> player -> coordinates) =
+    (strategie_remove : game_update -> player -> move) =
     { strategie_play; strategie_remove }
 
 (**
@@ -25,11 +25,17 @@ let privatePlay game_update (player1 : player_strategie) (private_player1 : play
     let move = player1.strategie_play game_update private_player1 in
     let newGU = apply game_update private_player1 move in
     if not newGU.game_is_changed
-    then raise (Not_Allowed "Illegal move placed/move")
+    then
+      let () =
+          match move with
+          | Placing (x, y) -> Format.printf "Error in (%d,%d)@." x y
+          | _ -> ()
+      in
+      raise (Not_Allowed "Illegal move placed/move")
     else if newGU.mill
     then
       let removed = player1.strategie_remove newGU private_player1 in
-      let newGU = eliminate_piece newGU removed private_player2.color in
+      let newGU = eliminate_piece newGU (get_removed_piece removed) private_player2.color in
       if not newGU.game_is_changed then raise (Not_Allowed "Illegal move remove") else newGU
     else newGU
 
@@ -85,9 +91,9 @@ let update_phase game_update =
   @param template the template of the board    
 *)
 let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) =
-    (* we init the private players, p1 is always Black *)
+    (* we init the private players, p1 is always White *)
     let private_p1 = init_player White in
-    (* we init the private players, p2 is always White *)
+    (* we init the private players, p2 is always Black *)
     let private_p2 = init_player Black in
     (* recursive function that play a turn for each player *)
     let rec turn (game_update : game_update) =
@@ -101,12 +107,14 @@ let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) 
           let newGU = privatePlay game_update p1 game_update.player1 game_update.player2 in
           (* we update the phase of the players *)
           let newGU = update_phase newGU in
+          let () = pretty_print_board newGU.board in
           (* if the player2 has lost, we return the game_update *)
           if lost newGU newGU.player2
           then newGU
           else
             (* else, we play the turn for player2 *)
             let newGU = privatePlay newGU p2 newGU.player2 newGU.player1 in
+            let () = pretty_print_board newGU.board in
             turn newGU (* we play the next turn *)
     in
     turn

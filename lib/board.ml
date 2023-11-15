@@ -142,7 +142,7 @@ let place_piece_on_board (board : board) ((i, j) : coordinates) color : got_mill
   @param game : the game state
   @param ij : the coordinates where we want to place the piece
   @param color : the color of the player that wants to place the piece
-*) 
+*)
 let place_start_piece (game : game_update) ((i, j) : coordinates) (color : color) : game_update =
     let concerned_player = if game.player1.color = color then game.player1 else game.player2 in
     if get_square game.board (i, j) = Some Empty && concerned_player.piece_placed < game.max_pieces

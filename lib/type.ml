@@ -1,6 +1,11 @@
 (** Defines the two type of piece, Black pieces and White pieces *)
 type color = Black | White
 
+let pretty_print_color (color : color) : unit =
+    match color with
+    | Black -> Format.printf "Black"
+    | White -> Format.printf "White"
+
 (**
   Will be used in the type : square.
   Example : If a piece wants to move down, but the box below do not contain a "Path of V" (V for vertical), it means that it can't go down.   
@@ -22,7 +27,7 @@ type phase = Placing | Moving | Flying
 type direction_deplacement = Up | Down | Right | Left | Up_right | Up_left | Down_right | Down_left
 
 (** Will represent the players *)
-type player = {phase: phase; color: color; piece_placed: int; nb_pieces_on_board: int; bag: coordinates list }
+type player = {phase: phase; color: color; piece_placed: int; nb_pieces_on_board: int; bag: coordinates list}
 
 (**This type represent an action*)
 type move =
@@ -30,6 +35,12 @@ type move =
     | Moving of coordinates * direction_deplacement
     | Flying of coordinates * coordinates
     | Removing of coordinates
+
+let get_removed_piece (move : move) : coordinates =
+    match move with
+    | Removing (x, y) -> (x, y)
+    | _ ->
+        raise (Invalid_argument "Argument move is neither a Placing of coordinates neither a Removing of coordinates")
 
 (** This type will be returned after each function that alterate the state of the game *)
 type game_update = {
@@ -43,10 +54,10 @@ type game_update = {
 
 type player_strategie = {
     strategie_play: game_update -> player -> move;
-    strategie_remove: game_update -> player -> coordinates;
+    strategie_remove: game_update -> player -> move;
   }
 
-(*player1 is always Black and player2 is always White  *)
+(*player1 is always White and player2 is always Black  *)
 
 (**This function return a player who has the same color that the color in argument*)
 let get_player (game_update : game_update) (color : color) : player =
@@ -59,9 +70,16 @@ type got_mill = board * bool
 
 let pretty_print_phase (p : phase) =
     match p with
-    | Placing -> Format.printf "Phase de placement\n"
-    | Moving -> Format.printf "Phase de deplacement\n"
-    | Flying -> Format.printf "Phase de flying\n"
+    | Placing -> Format.printf "Phase de placement"
+    | Moving -> Format.printf "Phase de deplacement"
+    | Flying -> Format.printf "Phase de flying"
+
+let pretty_print_player (player : player) : unit =
+    Format.printf "{phase=";
+    pretty_print_phase player.phase;
+    Format.printf ";color=";
+    pretty_print_color player.color;
+    Format.printf ";piece_placed=%d;nb_pieces_on_board=%d}" player.piece_placed player.nb_pieces_on_board
 
 let reverse_color (c : color) : color =
     match c with
@@ -84,18 +102,25 @@ let show_winner color =
     | Black -> Format.printf "Le vainqueur est BLACK\n"
     | White -> Format.printf "Le vainqueur est WHITE\n"
 
-let print_move (m : direction_deplacement) =
+let print_move (m : direction_deplacement) (fmt : Format.formatter) =
     match m with
-    | Up -> Format.printf "Up\n"
-    | Down -> Format.printf "Down\n"
-    | Right -> Format.printf "Right\n"
-    | Left -> Format.printf "Left\n"
-    | Up_right -> Format.printf "Up_right\n"
-    | Up_left -> Format.printf "Up_left\n"
-    | Down_right -> Format.printf "Down_right\n"
-    | Down_left -> Format.printf "Down_left\n"
+    | Up -> Format.fprintf fmt "Up@."
+    | Down -> Format.fprintf fmt "Down@."
+    | Right -> Format.fprintf fmt "Right@."
+    | Left -> Format.fprintf fmt "Left@."
+    | Up_right -> Format.fprintf fmt "Up_right@."
+    | Up_left -> Format.fprintf fmt "Up_left@."
+    | Down_right -> Format.fprintf fmt "Down_right@."
+    | Down_left -> Format.fprintf fmt "Down_left@."
 
-let pretty_print_list_direction l = l |> List.iter (fun a -> print_move a)
+let pretty_print_move (move : move) : unit =
+    match move with
+    | Placing (x, y) -> Format.printf "Placing((%d,%d))@." x y
+    | Moving ((x, y), dir) -> Format.printf "Moving((%d,%d))" x y ;(print_move dir Format.std_formatter);Format.printf "@."
+    | Flying ((x, y), (x2, y2)) -> Format.printf "Flying((%d,%d),(%d,%d))" x y x2 y2
+    | Removing (x, y) -> Format.printf "Removing((%d,%d))" x y
+
+let pretty_print_list_direction l = l |> List.iter (fun a -> print_move a Format.std_formatter)
 
 let print_cord (x, y) =
     let exit = "x :" ^ string_of_int x ^ " y :" ^ string_of_int y ^ "\n" in

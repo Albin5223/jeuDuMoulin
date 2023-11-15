@@ -2,7 +2,7 @@ exception Not_Allowed of string
 
 val init_player_with_strategie :
   (Type.game_update -> Type.player -> Type.move) ->
-  (Type.game_update -> Type.player -> Type.coordinates) ->
+  (Type.game_update -> Type.player -> Type.move) ->
   Type.player_strategie
 
 val privatePlay : Type.game_update -> Type.player_strategie -> Type.player -> Type.player -> Type.game_update
