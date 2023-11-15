@@ -438,8 +438,8 @@ let possible_moves (game : game_update) ((i, j) : coordinates) (player : color) 
   @param player : the player that wants to apply the move
   @param move : the move to apply
 *)
-let apply (game_update : game_update) (player : player) (move : move) : game_update =
-    match (move, player.phase) with
+let apply (game_update : game_update) (player : player) (action : action) : game_update =
+    match (action, player.phase) with
     | Placing c, Placing -> place_start_piece game_update c player.color
     | Moving (c, dir), Moving -> move_to_direction game_update c dir player.color
     | Flying (c1, c2), Flying -> move_to_coordinates game_update c1 c2 player.color
@@ -454,7 +454,7 @@ let max_piece_from_template (board : template) : int =
     | Three_mens_morris -> 3
     | Six_mens_morris -> 6
     | Nine_mens_morris -> 9
-    | Twelve_mens_morris -> 9
+    | Twelve_mens_morris -> 4
 
 (**
   Function that init a board from a template
@@ -541,3 +541,30 @@ let update_phase (game_update : game_update) : game_update =
       game_is_changed = game_update.game_is_changed;
       max_pieces = game_update.max_pieces;
     }
+
+let distance (xa, ya) (xb, yb) : int =
+    int_of_float (sqrt ((float_of_int (xb - xa) ** 2.) +. (float_of_int (yb - ya) ** 2.)))
+
+(**Return coordinates for the developer from coordinates from the user in any board you can create with the function "initBoard width ..."
+    or return -1 if this isn't possible*)
+let traductor ((i, j) : coordinates) (width : int) : coordinates =
+    if (j > 2 && width = 4)
+       || (j > (width / 2) - 1 && width != 4 && i = width / 4)
+       || (j > 2 && width != 4 && i != width / 4)
+       || j < 0
+       || i < 0
+       || i > width / 2
+    then (-1, -1)
+    else if i = width / 4
+    then if j < width / 4 || width = 4 then (i * 2, j * 2) else (i * 2, (j * 2) + 2)
+    else
+      let curSquare =
+          min
+            (min (distance (0, 0) (i, j)) (distance (0, 2) (i, j)))
+            (min (distance (width / 2, 0) (i, j)) (distance (width / 2, 2) (i, j)))
+      in
+      (i * 2, (curSquare * 2) + (j * 2 * ((width / 4) - curSquare)))
+(*width/2 is the distance between the middle and the origin and when we divide by 2 this means the maximal number of squares we can put in the board *)
+(*2*(maxSquare-curSquare) is the number of cell we jump when we increment the ordinate from the concerned square and we add to cursSquare*2 because it is the start
+  of the first cell of the square (each square is separated by 2)*)
+(*private function*)

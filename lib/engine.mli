@@ -31,7 +31,7 @@ val move_to_direction :
 
 val possible_moves : Type.game_update -> Type.coordinates -> Type.color -> Type.direction_deplacement list
 
-val apply : Type.game_update -> Type.player -> Type.move -> Type.game_update
+val apply : Type.game_update -> Type.player -> Type.action -> Type.game_update
 
 val max_piece_from_template : Type.template -> int
 
@@ -43,4 +43,8 @@ val lost : Type.game_update -> Type.player -> bool
 
 val init_player : Type.color -> Type.player
 
+val update_player_phase : Type.player -> int -> Type.player
+
 val update_phase : Type.game_update -> Type.game_update
+
+val traductor : Type.coordinates -> int -> Type.coordinates

@@ -1,13 +1,6 @@
 open Mill.Type
 open Mill.Engine
-
-let generate_color =
-    let open QCheck in
-    Gen.oneof [Gen.return Black; Gen.return White]
-
-let arbitrary_color =
-    let open QCheck in
-    make generate_color
+open Utils
 
 let test_place_piece =
     let open QCheck in
@@ -22,6 +15,29 @@ let test_place_piece =
           get_square board coord = Some (Color color)
         else true)
 
+let test_mill =
+    let open QCheck in
+    Test.make ~name:"mill" ~count:1000 (pair arbitrary_color arbitrary_templates) (fun (color, template) ->
+        let board = fill_all_node template color in
+        let flat = List.flatten board in
+        let rec loop list acc x =
+            match list with
+            | [] -> acc
+            | y :: ys -> (
+                match y with
+                | Color c when c = color ->
+                    let j = x mod List.length board in
+                    let i = x / List.length board in
+                    let coord = (i, j) in
+                    loop ys (acc && check_mill_from_position board coord color) (x + 1)
+                | _ -> loop ys acc (x + 1))
+        in
+        loop flat true 0)
+
 let () =
     let open Alcotest in
-    run "TEST ENGINE" [("Test place piece", [QCheck_alcotest.to_alcotest test_place_piece])]
+    run "TEST ENGINE"
+      [
+        ("Test place piece", [QCheck_alcotest.to_alcotest test_place_piece]);
+        ("Test mill", [QCheck_alcotest.to_alcotest test_mill]);
+      ]
