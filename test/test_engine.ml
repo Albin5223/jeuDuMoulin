@@ -21,7 +21,7 @@ let test_place_piece =
           let board, _ = place_piece_on_board board coord color in
           get_square board coord = Some (Color color)
         else true)
-    
+
 let () =
     let open Alcotest in
     run "TEST ENGINE" [("Test place piece", [QCheck_alcotest.to_alcotest test_place_piece])]
