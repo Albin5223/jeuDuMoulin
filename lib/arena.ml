@@ -173,12 +173,23 @@ let affiche_dir ((i, j) : coordinates) (game : game_update) (player : color) : u
     print_endline l3
 
 let player_human =
+    let to_string (c : color) : string =
+        match c with
+        | Black -> "(Black)"
+        | White -> "(White)"
+    in
     let rec strategie_play (game_update : game_update) (player : player) : action =
-        let () = pretty_print_board game_update.board in
         match player.phase with
         | Placing -> (
-            let i = read "in which line do you want to place your man ? (i) : " in
-            let j = read "in which column do you want to place your man ? (j) : " in
+            let () = pretty_print_board game_update.board in
+            let i =
+                Format.printf "%s : " (to_string player.color);
+                read "in which line do you want to place your man ? (i) : "
+            in
+            let j =
+                Format.printf "%s : " (to_string player.color);
+                read "in which column do you want to place your man ? (j) : "
+            in
             let coord = traductor (i, j) (List.length (List.nth game_update.board 0) - 1) in
             match get_square game_update.board coord with
             | Some Empty -> Placing coord
@@ -187,11 +198,21 @@ let player_human =
                 strategie_play game_update player)
         | Moving ->
             let rec move () : coordinates * direction_deplacement =
-                let i = read "in which line is the man you want to move ? (i) : " in
-                let j = read "in which column is the man you want to move ? (j) : " in
+                let () = pretty_print_board game_update.board in
+                let i =
+                    Format.printf "%s : " (to_string player.color);
+                    read "in which line is the man you want to move ? (i) : "
+                in
+                let j =
+                    Format.printf "%s : " (to_string player.color);
+                    read "in which column is the man you want to move ? (j) : "
+                in
                 let coord = traductor (i, j) (List.length (List.nth game_update.board 0) - 1) in
                 let () = affiche_dir coord game_update player.color in
-                let intDir = read "what direction do you choose ? : " in
+                let intDir =
+                    Format.printf "%s : " (to_string player.color);
+                    read "what direction do you choose ? : "
+                in
                 ( coord,
                   match intDir with
                   | 1 -> Up_left
@@ -206,16 +227,24 @@ let player_human =
                       match move () with
                       | _, dir -> dir) )
             in
-            let coord, dir = move () in
-            (try let _ = List.find (fun x -> x = dir) (possible_moves game_update coord player.color) in Moving (coord, dir) with
-            | Not_found ->
-              let () = Format.printf "Invalid direction@." in
-              let coord, dir = move () in
-              Moving (coord, dir))
+            let rec choose_move () =
+                let coord, dir = move () in
+                if (apply game_update player (Moving (coord, dir))).game_is_changed
+                then Moving (coord, dir)
+                else choose_move ()
+            in
+            choose_move ()
         | Flying ->
             let rec choice_start board =
-                let i = read "in which line you want to move it ? (i) : " in
-                let j = read "in which column you want to move it ? (j) : " in
+                let () = pretty_print_board game_update.board in
+                let i =
+                    Format.printf "%s : " (to_string player.color);
+                    read "in which line is the man you want to move ? (i) : "
+                in
+                let j =
+                    Format.printf "%s : " (to_string player.color);
+                    read "in which column is the man you want to move ? (j) : "
+                in
                 try
                   match get_square board (traductor (i, j) (List.length (List.nth game_update.board 0))) with
                   | Some (Color x) ->
@@ -229,8 +258,14 @@ let player_human =
             in
 
             let rec choice_end board =
-                let i = read "in which line is the man you want to move ? (i) : " in
-                let j = read "in which column is the man you want to move ? (j) : " in
+                let i =
+                    Format.printf "%s : " (to_string player.color);
+                    read "in which line you want to move it ? (i) : "
+                in
+                let j =
+                    Format.printf "%s : " (to_string player.color);
+                    read "in which column you want to move it ? (j) : "
+                in
                 try
                   match get_square board (traductor (i, j) (List.length (List.nth game_update.board 0))) with
                   | Some Empty -> traductor (i, j) (List.length (List.nth game_update.board 0))
@@ -239,12 +274,23 @@ let player_human =
                   let () = Format.printf "%s@." x in
                   choice_end board
             in
+            let depart = choice_start game_update.board in
+            let arrive = choice_end game_update.board in
 
-            Flying (choice_start game_update.board, choice_end game_update.board)
+            if (apply game_update player (Flying (depart, arrive))).game_is_changed
+            then Flying (depart, arrive)
+            else strategie_play game_update player
     in
     let rec strategie_remove (game_update : game_update) (player : player) : action =
-        let i = read "in which line is the man you want to remove ? (i) : " in
-        let j = read "in which column is the man you want to remove ? (j) : " in
+        let () = pretty_print_board game_update.board in
+        let i =
+            Format.printf "%s : " (to_string player.color);
+            read "in which line is the man you want to remove ? (i) : "
+        in
+        let j =
+            Format.printf "%s : " (to_string player.color);
+            read "in which column is the man you want to remove ? (j) : "
+        in
         let coord = traductor (i, j) (List.length (List.nth game_update.board 0)) in
         try
           match get_square game_update.board coord with

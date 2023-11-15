@@ -454,7 +454,7 @@ let max_piece_from_template (board : template) : int =
     | Three_mens_morris -> 3
     | Six_mens_morris -> 6
     | Nine_mens_morris -> 9
-    | Twelve_mens_morris -> 9
+    | Twelve_mens_morris -> 4
 
 (**
   Function that init a board from a template
