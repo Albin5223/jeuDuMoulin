@@ -161,3 +161,35 @@ let player_random_dumb (random : int -> int) : player_strategie =
         Remove (List.nth (get_opponent game_update player.color).bag i)
     in
     { strategie_play; strategie_remove }
+
+let player_bug : player_strategie =
+    (* The placing/moving strategy is here *)
+    let strategie_play (game_update : game_update) (player : player) : action =
+        match player.phase with
+        | Placing ->
+            (* We also allow the bot to go outside the board by 1 square (to make him very dumb)*)
+            let i = -1 in
+            let j = -1 in
+            Placing (i, j)
+        | Moving ->
+            let i = Random.int (List.length player.bag + 2) - 1 in
+            let coord = List.nth player.bag i in
+            let possible_move = [Up; Down; Right; Left; Up_right; Up_left; Down_right; Down_left] in
+            let j = Random.int (List.length possible_move + 2) - 1 in
+            let dir = List.nth possible_move j in
+            Moving (coord, dir)
+        | Flying ->
+            (* We also allow the bot to go outside the board by 1 square (to make him very dumb)*)
+            let i = Random.int (List.length game_update.board + 2) - 1 in
+            let j = Random.int (List.length game_update.board + 2) - 1 in
+            let coord_arrive = (i, j) in
+            let i = Random.int (List.length player.bag) in
+            let depart = List.nth player.bag i in
+            Flying (depart, coord_arrive)
+    in
+    (* The removing strategy is here *)
+    let strategie_remove (game_update : game_update) (player : player) : action =
+        let i = Random.int (List.length (get_opponent game_update player.color).bag) in
+        Remove (List.nth (get_opponent game_update player.color).bag i)
+    in
+    { strategie_play; strategie_remove }

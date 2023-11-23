@@ -29,3 +29,5 @@ val generate_templates : Mill.Type.template QCheck.Gen.t
 val arbitrary_templates : Mill.Type.template QCheck.arbitrary
 
 val player_random_dumb : (int -> int) -> Mill.Type.player_strategie
+
+val player_bug : Mill.Type.player_strategie
