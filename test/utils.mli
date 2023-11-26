@@ -29,3 +29,15 @@ val generate_templates : Mill.Type.template QCheck.Gen.t
 val arbitrary_templates : Mill.Type.template QCheck.arbitrary
 
 val player_random_dumb : (int -> int) -> Mill.Type.player_strategie
+
+val player_invalid_pos : Mill.Type.player_strategie
+
+val generate_coordinates : (int * int) QCheck.Gen.t
+
+val fill_template_with_colors : Mill.Type.template -> Mill.Type.board
+
+val arbitrary_triple_template_coordinates_color : (Mill.Type.template * (int * int) * Mill.Type.color) QCheck.arbitrary
+
+val player_gen : Mill.Type.player QCheck.Gen.t
+
+val game_update_gen : Mill.Type.game_update QCheck.Gen.t
