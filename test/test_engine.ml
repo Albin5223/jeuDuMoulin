@@ -127,6 +127,50 @@ let place_start_piece_test =
 
         true)
 
+let test_place_exceed_max_pieces =
+    let open QCheck in
+    Test.make ~name:"place_start_piece" ~count:1000 (triple arbitrary_color small_int small_int) (fun (color, x, y) ->
+        let i = x mod 9 in
+        let j = y mod 9 in
+        let coord = (i, j) in
+        let max_pieces_nb = max_piece_from_template Nine_mens_morris in
+        let initial_game_state =
+            {
+              board = init_board_with_template Nine_mens_morris;
+              mill = false;
+              player1 =
+                {
+                  phase = Placing;
+                  color = Black;
+                  piece_placed = Random.int max_pieces_nb;
+                  nb_pieces_on_board = Random.int max_pieces_nb;
+                  bag = [];
+                  (* we don't check the bag in the test *)
+                };
+              player2 =
+                {
+                  phase = Placing;
+                  color = White;
+                  piece_placed = Random.int max_pieces_nb;
+                  nb_pieces_on_board = Random.int max_pieces_nb;
+                  bag = [];
+                  (* we don't check the bag in the test *)
+                };
+              game_is_changed = false;
+              max_pieces = max_pieces_nb;
+            }
+        in
+
+        (* try to place a piece for the player *)
+        let updated_game_state = place_start_piece initial_game_state coord color in
+
+        (* check if the piece is placed or not *)
+        if updated_game_state.game_is_changed
+        then
+          updated_game_state.player1.piece_placed = initial_game_state.player1.piece_placed + 1
+          && updated_game_state.player1.piece_placed < max_piece_from_template Nine_mens_morris
+        else initial_game_state.player1.piece_placed = updated_game_state.player1.piece_placed)
+
 let () =
     let open Alcotest in
     run "TEST ENGINE"
@@ -137,4 +181,5 @@ let () =
         ( "Test place piece not assume is valid pos",
           [QCheck_alcotest.to_alcotest test_place_piece_not_assume_is_valid_pos] );
         ("Test place start piece", [QCheck_alcotest.to_alcotest place_start_piece_test]);
+        ("Test place more than max piece", [QCheck_alcotest.to_alcotest test_place_exceed_max_pieces]);
       ]
