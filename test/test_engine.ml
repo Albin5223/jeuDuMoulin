@@ -84,6 +84,49 @@ let test_place_piece_not_assume_is_valid_pos =
         let board, _ = place_piece_on_board board coord color in
         get_square board coord = Some (Color color))
 
+let place_start_piece_test =
+    QCheck.Test.make ~name:"place_start_piece" ~count:1000 (QCheck.make game_update_gen) (fun game_update ->
+        let initial_player = game_update.player1 in
+        let color = initial_player.color in
+        let coordinates = (Random.int 10, Random.int 10) in
+        let updated_game = place_start_piece game_update coordinates color in
+
+        let expected_piece_placed =
+            if get_square game_update.board (fst coordinates, snd coordinates) = Some Empty
+               && initial_player.piece_placed < game_update.max_pieces
+            then initial_player.piece_placed + 1
+            else initial_player.piece_placed
+        in
+        let expected_nb_pieces_on_board =
+            if get_square game_update.board (fst coordinates, snd coordinates) = Some Empty
+               && initial_player.piece_placed < game_update.max_pieces
+            then initial_player.nb_pieces_on_board + 1
+            else initial_player.nb_pieces_on_board
+        in
+        let expected_bag =
+            if get_square game_update.board (fst coordinates, snd coordinates) = Some Empty
+               && initial_player.piece_placed < game_update.max_pieces
+            then initial_player.bag @ [coordinates]
+            else initial_player.bag
+        in
+        let () =
+            Alcotest.(check int) "Piece placed incremented" expected_piece_placed updated_game.player1.piece_placed
+        in
+        let () =
+            Alcotest.(check int)
+              "Number of pieces on board incremented" expected_nb_pieces_on_board
+              updated_game.player1.nb_pieces_on_board
+        in
+        let () = Alcotest.(check (list (pair int int))) "Piece added to bag" expected_bag updated_game.player1.bag in
+        let () =
+            Alcotest.(check bool)
+              "Player have a finite number of pieces"
+              (expected_piece_placed <= game_update.max_pieces)
+              true
+        in
+
+        true)
+
 let () =
     let open Alcotest in
     run "TEST ENGINE"
@@ -93,4 +136,5 @@ let () =
         ("Test mill from position", [QCheck_alcotest.to_alcotest check_mill_from_position_property]);
         ( "Test place piece not assume is valid pos",
           [QCheck_alcotest.to_alcotest test_place_piece_not_assume_is_valid_pos] );
+        ("Test place start piece", [QCheck_alcotest.to_alcotest place_start_piece_test]);
       ]
