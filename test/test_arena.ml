@@ -66,14 +66,13 @@ let test_error_player =
         | Not_Allowed _ | Invalid_Strategy _ -> true
         | _ -> false)
 
-let player_bug_test =
-  let open Alcotest in
-  [test_case "Invalid move" `Quick (fun () ->
-    Alcotest.(check_raises) "Invalid_position" (Invalid_Strategy "invalid position")
-      (fun () ->
-        ignore
-          (arena player_bug player_bug Twelve_mens_morris)));]
-
+let test_player_invalid_pos =
+    let open Alcotest in
+    [
+      test_case "Invalid move" `Quick (fun () ->
+          Alcotest.(check_raises) "Invalid_position" (Invalid_Strategy "Strategy invalid") (fun () ->
+              ignore (arena (player_random Random.int) player_invalid_pos Twelve_mens_morris)));
+    ]
 
 let () =
     let open Alcotest in
@@ -83,5 +82,5 @@ let () =
         ("Test configuration end game", [QCheck_alcotest.to_alcotest test_config_end_game]);
         ("Test reachable square", [QCheck_alcotest.to_alcotest test_reachable]);
         ("Test error player", [QCheck_alcotest.to_alcotest test_error_player]);
-        ("player generates only invalide positions", player_bug_test)
+        ("player generates only invalide positions", test_player_invalid_pos);
       ]

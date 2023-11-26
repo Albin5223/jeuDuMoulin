@@ -162,7 +162,7 @@ let player_random_dumb (random : int -> int) : player_strategie =
     in
     { strategie_play; strategie_remove }
 
-let player_bug : player_strategie =
+let player_invalid_pos : player_strategie =
     (* The placing/moving strategy is here *)
     let strategie_play (game_update : game_update) (player : player) : action =
         match player.phase with
@@ -193,3 +193,25 @@ let player_bug : player_strategie =
         Remove (List.nth (get_opponent game_update player.color).bag i)
     in
     { strategie_play; strategie_remove }
+
+let generate_coordinates =
+    let open QCheck in
+    Gen.pair Gen.int Gen.int
+
+let fill_template_with_colors (template : template) : board =
+    let rec fill_row_template (row_template : square list) : square list =
+        match row_template with
+        | [] -> []
+        | h :: t -> (
+            match h with
+            | Color _ -> h :: fill_row_template t
+            | _ -> Color (QCheck.Gen.generate1 generate_color) :: fill_row_template t)
+    in
+    List.map fill_row_template (init_board_with_template template)
+
+let triple_gen_template_coordinates_color =
+    QCheck.Gen.(
+      pair generate_templates (pair generate_coordinates generate_color)
+      |> map (fun (template, (coordinates, color)) -> (template, coordinates, color)))
+
+let arbitrary_triple_template_coordinates_color = QCheck.make triple_gen_template_coordinates_color
