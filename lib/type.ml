@@ -103,4 +103,4 @@ let pretty_print_phase (p : phase) =
     match p with
     | Placing -> Format.printf "Phase de placement\n"
     | Moving -> Format.printf "Phase de deplacement\n"
-    | Flying -> Format.printf "Phase de flying\n"
+    | Flying -> Format.printf "Phase de vol\n"
