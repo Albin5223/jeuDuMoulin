@@ -74,6 +74,16 @@ let check_mill_from_position_property =
         (* Add more properties as needed *)
         true)
 
+let test_place_piece_not_assume_is_valid_pos =
+    let open QCheck in
+    Test.make ~name:"place_piece" ~count:1000 (triple arbitrary_color small_int small_int) (fun (color, x, y) ->
+        let i = x in
+        let j = y in
+        let coord = (i, j) in
+        let board = init_board_with_template Nine_mens_morris in
+        let board, _ = place_piece_on_board board coord color in
+        get_square board coord = Some (Color color))
+
 let () =
     let open Alcotest in
     run "TEST ENGINE"
@@ -81,4 +91,6 @@ let () =
         ("Test place piece", [QCheck_alcotest.to_alcotest test_place_piece]);
         ("Test mill", [QCheck_alcotest.to_alcotest test_mill]);
         ("Test mill from position", [QCheck_alcotest.to_alcotest check_mill_from_position_property]);
+        ( "Test place piece not assume is valid pos",
+          [QCheck_alcotest.to_alcotest test_place_piece_not_assume_is_valid_pos] );
       ]

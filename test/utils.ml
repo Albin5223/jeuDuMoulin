@@ -1,5 +1,6 @@
 open Mill.Engine
 open Mill.Type
+open QCheck
 
 let equals_board (board1 : board) (board2 : board) : bool =
     let rec compare l1 l2 =
@@ -198,6 +199,8 @@ let generate_coordinates =
     let open QCheck in
     Gen.pair Gen.int Gen.int
 
+let generate_direction = Gen.oneof [Gen.return H; Gen.return V; Gen.return DR; Gen.return DL]
+
 let fill_template_with_colors (template : template) : board =
     let rec fill_row_template (row_template : square list) : square list =
         match row_template with
@@ -215,3 +218,40 @@ let triple_gen_template_coordinates_color =
       |> map (fun (template, (coordinates, color)) -> (template, coordinates, color)))
 
 let arbitrary_triple_template_coordinates_color = QCheck.make triple_gen_template_coordinates_color
+
+let board_gen : board Gen.t =
+    let gen_square : square Gen.t =
+        Gen.oneof
+          [
+            Gen.return Empty;
+            Gen.map (fun d -> Path d) generate_direction;
+            Gen.return Wall;
+            Gen.map (fun c -> Color c) generate_color;
+          ]
+    in
+    let gen_row : square list Gen.t = Gen.list gen_square in
+    Gen.list gen_row
+
+let phase_gen : phase QCheck.Gen.t =
+    let open QCheck in
+    Gen.oneof [Gen.return (Placing : phase); Gen.return (Moving : phase); Gen.return (Flying : phase)]
+
+let player_gen : player Gen.t =
+    let open Gen in
+    let gen_bag = list (pair int int) in
+    let* phase = phase_gen in
+    let* color = generate_color in
+    let* piece_placed = small_nat in
+    let* nb_pieces_on_board = small_nat in
+    let* bag = gen_bag in
+    return { phase; color; piece_placed; nb_pieces_on_board; bag }
+
+let game_update_gen : game_update Gen.t =
+    let open Gen in
+    let* board = board_gen in
+    let* mill = Gen.bool in
+    let* player1 = player_gen in
+    let* player2 = player_gen in
+    let* game_is_changed = Gen.bool in
+    let* max_pieces = small_nat in
+    return { board; mill; player1; player2; game_is_changed; max_pieces }
