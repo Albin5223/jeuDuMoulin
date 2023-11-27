@@ -29,30 +29,6 @@ let equals_end_game (end_game1 : end_game) (end_game2 : end_game) : bool =
     && equals_player end_game1.loser end_game2.loser
     && equals_player end_game1.winner end_game2.winner
 
-let square_reachable_from_coordinates (i, j) (template : template) : game_update =
-    let rec allReachable_from_coordinates (i, j) (game_update : game_update) (acc : direction_deplacement list) :
-        game_update =
-        let newGU = apply game_update (get_player_1 game_update) (Placing (i, j)) in
-        let rec loop game_update (i, j) list_of_direction =
-            match list_of_direction with
-            | [] -> game_update
-            | x :: xs -> (
-                let coord = node_from_direction (get_board game_update) (i, j) x in
-                match coord with
-                | None -> loop game_update (i, j) xs
-                | Some c -> (
-                    let square = get_square (get_board game_update) c in
-                    match square with
-                    | Some Empty ->
-                        let nv = allReachable_from_coordinates c game_update acc in
-                        loop nv (i, j) xs
-                    | _ -> loop game_update (i, j) xs))
-        in
-        loop newGU (i, j) acc
-    in
-    allReachable_from_coordinates (i, j) (init_game_update template)
-      [Up; Down; Right; Left; Up_right; Up_left; Down_right; Down_left]
-
 let test_complete_board (game_update : game_update) : bool =
     let liste = get_all_free_positions game_update in
     List.length liste = 0

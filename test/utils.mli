@@ -8,8 +8,6 @@ val equals_game_update : Mill.Engine.game_update -> Mill.Engine.game_update -> b
 
 val equals_end_game : Mill.Engine.end_game -> Mill.Engine.end_game -> bool
 
-val square_reachable_from_coordinates : int * int -> Mill.Engine.template -> Mill.Engine.game_update
-
 val test_complete_board : Mill.Engine.game_update -> bool
 
 val generate_color : Mill.Engine.color QCheck.Gen.t

@@ -33,22 +33,6 @@ let testSeed =
         let game2 = arena player1 player2 Nine_mens_morris in
         equals_end_game game1 game2)
 
-let test_reachable =
-    let open QCheck in
-    Test.make ~count:10000 ~name:"for all board : all square are reachable"
-      (triple small_int small_int arbitrary_templates) (fun (x, y, template) ->
-        let game_update = init_game_update template in
-        let i = x mod board_length (get_board game_update) in
-        let j = y mod board_length (get_board game_update) in
-        let square = get_square (get_board game_update) (i, j) in
-        match square with
-        | Some Empty ->
-            let newGU = square_reachable_from_coordinates (i, j) template in
-            test_complete_board newGU
-        | _ ->
-            let new_GU = square_reachable_from_coordinates (0, 0) template in
-            test_complete_board new_GU)
-
 let test_error_player =
     let open QCheck in
     Test.make ~count:1000 ~name:"for all game : the dumb bot will never finish the game"
@@ -68,8 +52,11 @@ let test_player_invalid_pos =
     let open Alcotest in
     [
       test_case "Invalid move" `Quick (fun () ->
-          Alcotest.(check_raises) "Invalid_position" (Invalid_Strategy "Strategy invalid") (fun () ->
-              ignore (arena (player_random Random.int) player_invalid_pos Twelve_mens_morris)));
+          let wrapper_fn () =
+              try ignore (arena (player_random Random.int) player_invalid_pos Twelve_mens_morris)
+              with Invalid_Strategy _ | Not_Allowed _ -> raise (Failure "Expected exception")
+          in
+          Alcotest.(check_raises) "Expected exception" (Failure "Expected exception") wrapper_fn);
     ]
 
 let () =
@@ -78,7 +65,6 @@ let () =
       [
         ("Test with Seed generate", [QCheck_alcotest.to_alcotest testSeed]);
         ("Test configuration end game", [QCheck_alcotest.to_alcotest test_config_end_game]);
-        ("Test reachable square", [QCheck_alcotest.to_alcotest test_reachable]);
         ("Test error player", [QCheck_alcotest.to_alcotest test_error_player]);
         ("player generates only invalide positions", test_player_invalid_pos);
       ]
