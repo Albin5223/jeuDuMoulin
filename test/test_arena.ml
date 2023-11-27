@@ -1,4 +1,3 @@
-open Mill.Type
 open Mill.Arena
 open Mill.Engine
 open Utils
@@ -14,9 +13,8 @@ let test_config_end_game =
         in
         let player1 = player_random randomSeed in
         let player2 = player_random randomSeed in
-        let game = arena player1 player2 Nine_mens_morris in
-        let game_update = game_update_of_game game in
-        cant_move game.loser game_update || game.loser.nb_pieces_on_board <= 2)
+        let end_game = arena player1 player2 Nine_mens_morris in
+        cant_move end_game.loser end_game.game || end_game.loser.nb_pieces_on_board <= 2)
 
 (**This test check that with the same seed, we will get the same end*)
 let testSeed =
@@ -39,17 +37,17 @@ let test_reachable =
     let open QCheck in
     Test.make ~count:10000 ~name:"for all board : all square are reachable"
       (triple small_int small_int arbitrary_templates) (fun (x, y, template) ->
-        let board = init_board_with_template template in
-        let i = x mod List.length board in
-        let j = y mod List.length board in
-        let square = get_square board (i, j) in
+        let game_update = init_game_update template in
+        let i = x mod board_length (get_board game_update) in
+        let j = y mod board_length (get_board game_update) in
+        let square = get_square (get_board game_update) (i, j) in
         match square with
         | Some Empty ->
-            let new_board = square_reachable_from_coordinates (i, j) board in
-            test_complete_board new_board
+            let newGU = square_reachable_from_coordinates (i, j) template in
+            test_complete_board newGU
         | _ ->
-            let new_board = square_reachable_from_coordinates (0, 0) board in
-            test_complete_board new_board)
+            let new_GU = square_reachable_from_coordinates (0, 0) template in
+            test_complete_board new_GU)
 
 let test_error_player =
     let open QCheck in

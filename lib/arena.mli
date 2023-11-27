@@ -3,12 +3,12 @@ exception Not_Allowed of string
 exception Invalid_Strategy of string
 
 val init_player_with_strategie :
-  (Type.game_update -> Type.player -> Type.action) ->
-  (Type.game_update -> Type.player -> Type.action) ->
-  Type.player_strategie
+  (Engine.game_update -> Engine.player -> Engine.action) ->
+  (Engine.game_update -> Engine.player -> Engine.action) ->
+  Engine.player_strategie
 
-val arena : Type.player_strategie -> Type.player_strategie -> Type.template -> Type.end_game
+val arena : Engine.player_strategie -> Engine.player_strategie -> Engine.template -> Engine.end_game
 
-val player_random : (int -> int) -> Type.player_strategie
+val player_random : (int -> int) -> Engine.player_strategie
 
-val player_human : Type.player_strategie
+val player_human : Engine.player_strategie

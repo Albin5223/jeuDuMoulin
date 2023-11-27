@@ -1,43 +1,40 @@
-val equals_board : Mill.Type.board -> Mill.Type.board -> bool
+val equals_coordinate : Mill.Engine.coordinates -> Mill.Engine.coordinates -> bool
 
-val equals_coordinate : Mill.Type.coordinates -> Mill.Type.coordinates -> bool
+val equals_list_coordinate : Mill.Engine.coordinates list -> Mill.Engine.coordinates list -> bool
 
-val equals_list_coordinate : Mill.Type.coordinates list -> Mill.Type.coordinates list -> bool
+val equals_player : Mill.Engine.player -> Mill.Engine.player -> bool
 
-val equals_player : Mill.Type.player -> Mill.Type.player -> bool
+val equals_game_update : Mill.Engine.game_update -> Mill.Engine.game_update -> bool
 
-val equals_end_game : Mill.Type.end_game -> Mill.Type.end_game -> bool
+val equals_end_game : Mill.Engine.end_game -> Mill.Engine.end_game -> bool
 
-val game_update_of_game : Mill.Type.end_game -> Mill.Type.game_update
+val square_reachable_from_coordinates : int * int -> Mill.Engine.template -> Mill.Engine.game_update
 
-val square_reachable_from_coordinates : int * int -> Mill.Type.board -> Mill.Type.board
+val test_complete_board : Mill.Engine.game_update -> bool
 
-val board_map_all : (Mill.Type.square -> Mill.Type.square) -> Mill.Type.board -> Mill.Type.board
+val generate_color : Mill.Engine.color QCheck.Gen.t
 
-val for_all_board : (Mill.Type.square -> bool) -> Mill.Type.board -> bool
+val arbitrary_color : Mill.Engine.color QCheck.arbitrary
 
-val fill_all_node : Mill.Type.template -> Mill.Type.color -> Mill.Type.board
+val generate_templates : Mill.Engine.template QCheck.Gen.t
 
-val test_complete_board : Mill.Type.board -> bool
+val arbitrary_templates : Mill.Engine.template QCheck.arbitrary
 
-val generate_color : Mill.Type.color QCheck.Gen.t
+val player_random_dumb : (int -> int) -> Mill.Engine.player_strategie
 
-val arbitrary_color : Mill.Type.color QCheck.arbitrary
-
-val generate_templates : Mill.Type.template QCheck.Gen.t
-
-val arbitrary_templates : Mill.Type.template QCheck.arbitrary
-
-val player_random_dumb : (int -> int) -> Mill.Type.player_strategie
-
-val player_invalid_pos : Mill.Type.player_strategie
+val player_invalid_pos : Mill.Engine.player_strategie
 
 val generate_coordinates : (int * int) QCheck.Gen.t
 
-val fill_template_with_colors : Mill.Type.template -> Mill.Type.board
+val generate_direction : Mill.Engine.direction QCheck.Gen.t
 
-val arbitrary_triple_template_coordinates_color : (Mill.Type.template * (int * int) * Mill.Type.color) QCheck.arbitrary
+val fill_template_with_colors : Mill.Engine.template -> Mill.Engine.board
 
-val player_gen : Mill.Type.player QCheck.Gen.t
+val triple_gen_template_coordinates_color : (Mill.Engine.template * (int * int) * Mill.Engine.color) QCheck.Gen.t
 
-val game_update_gen : Mill.Type.game_update QCheck.Gen.t
+val arbitrary_triple_template_coordinates_color :
+  (Mill.Engine.template * (int * int) * Mill.Engine.color) QCheck.arbitrary
+
+val phase_gen : Mill.Engine.phase QCheck.Gen.t
+
+val player_gen : Mill.Engine.player QCheck.Gen.t
