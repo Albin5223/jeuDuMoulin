@@ -9,11 +9,11 @@ let test_move_to_cordinates (game_up : game_update) (col : color) =
         let j1 = cx2 mod 9 in
         let i2 = cy1 mod 9 in
         let j2 = cy2 mod 9 in
-        let dep = get_square game_up.board (i1, j1) in
-        let arr = get_square game_up.board (i2, j2) in
+        let dep = get_square (get_board game_up) (i1, j1) in
+        let arr = get_square (get_board game_up) (i2, j2) in
         if dep = Some (Color col) && arr = Some Empty
-        then not (equals_board game_up.board (move_to_coordinates game_up (i1, j1) (i2, j2) col).board)
-        else equals_board game_up.board (move_to_coordinates game_up (i1, j1) (i2, j2) col).board)
+        then not (equals_board (get_board game_up) (get_board (move_to_coordinates game_up (i1, j1) (i2, j2) col)))
+        else equals_board (get_board game_up) (get_board (move_to_coordinates game_up (i1, j1) (i2, j2) col)))
 
 let test_place_piece =
     let open QCheck in
@@ -160,16 +160,7 @@ let () =
       [
         ( "Test move_to_cordinates",
           [
-            (let game_up =
-                 {
-                   board = init_board_with_template Twelve_mens_morris;
-                   mill = false;
-                   player1 = init_player White;
-                   player2 = init_player Black;
-                   game_is_changed = false;
-                   max_pieces = max_piece_from_template Twelve_mens_morris;
-                 }
-             in
+            (let game_up = init_game_update Twelve_mens_morris in
              QCheck_alcotest.to_alcotest (test_move_to_cordinates game_up Black));
           ] );
         ("Test place piece", [QCheck_alcotest.to_alcotest test_place_piece]);
