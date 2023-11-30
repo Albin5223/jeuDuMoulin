@@ -1,6 +1,7 @@
 open Mill.Engine
 open Utils
 
+
 let test_place_piece =
     let open QCheck in
     Test.make ~name:"place_piece" ~count:1000 (triple arbitrary_color small_int small_int) (fun (color, x, y) ->
@@ -140,6 +141,37 @@ let test_place_exceed_max_pieces =
           && (get_player_1 updated_game_state).piece_placed <= max_piece_from_template Nine_mens_morris
         else (get_player_1 initial_game_state).piece_placed = (get_player_1 updated_game_state).piece_placed)
 
+
+
+
+let gen_template =
+    let open QCheck in
+    make (
+    Gen.oneof [
+        Gen.return Three_mens_morris;
+        Gen.return Six_mens_morris;
+        Gen.return Nine_mens_morris;
+        Gen.return Twelve_mens_morris;
+    ])
+
+
+      
+let test_template_property =
+let open QCheck in
+Test.make ~name:"Test template property" ~count:50 gen_template (fun template ->
+    let game_update = init_game_update template in
+        let expected_empty_cells = match template with
+            | Three_mens_morris -> 9
+            | Six_mens_morris -> 16
+            | Nine_mens_morris -> 24
+            | Twelve_mens_morris -> 24
+          in
+          List.length (get_all_free_positions game_update) = expected_empty_cells
+        )
+
+
+          
+
 let () =
     let open Alcotest in
     run "TEST ENGINE"
@@ -149,4 +181,5 @@ let () =
         ("Test mill from position", [QCheck_alcotest.to_alcotest check_mill_from_position_property]);
         ("Test place start piece", [QCheck_alcotest.to_alcotest place_start_piece_test]);
         ("Test place more than max piece", [QCheck_alcotest.to_alcotest test_place_exceed_max_pieces]);
+        ("Test template property", [QCheck_alcotest.to_alcotest test_template_property]);
       ]
