@@ -144,21 +144,12 @@ let test_place_exceed_max_pieces =
 
 
 
-let gen_template =
-    let open QCheck in
-    make (
-    Gen.oneof [
-        Gen.return Three_mens_morris;
-        Gen.return Six_mens_morris;
-        Gen.return Nine_mens_morris;
-        Gen.return Twelve_mens_morris;
-    ])
 
 
       
 let test_template_property =
 let open QCheck in
-Test.make ~name:"Test template property" ~count:50 gen_template (fun template ->
+Test.make ~name:"Test template property" ~count:50 arbitrary_templates (fun template ->
     let game_update = init_game_update template in
         let expected_empty_cells = match template with
             | Three_mens_morris -> 9
@@ -169,6 +160,15 @@ Test.make ~name:"Test template property" ~count:50 gen_template (fun template ->
           List.length (get_all_free_positions game_update) = expected_empty_cells
         )
 
+
+let test_players_placing_phase =
+  let open QCheck in
+  Test.make ~name:"Test players placing phase" ~count:50 arbitrary_templates (fun template ->
+    let game_update = init_game_update template in
+    (get_player_1 game_update).phase = Placing && (get_player_2 game_update).phase = Placing && 
+    (get_player_1 game_update).piece_placed = 0 && (get_player_2 game_update).piece_placed = 0
+    && (get_player_1 game_update).nb_pieces_on_board = 0 && (get_player_2 game_update).nb_pieces_on_board = 0
+  )
 
           
 
@@ -182,4 +182,6 @@ let () =
         ("Test place start piece", [QCheck_alcotest.to_alcotest place_start_piece_test]);
         ("Test place more than max piece", [QCheck_alcotest.to_alcotest test_place_exceed_max_pieces]);
         ("Test template property", [QCheck_alcotest.to_alcotest test_template_property]);
+        ("Test players placing phase", [QCheck_alcotest.to_alcotest test_players_placing_phase]);
+    
       ]
