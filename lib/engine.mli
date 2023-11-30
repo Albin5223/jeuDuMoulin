@@ -104,11 +104,11 @@ val eliminate_piece : game_update -> coordinates -> color -> game_update
 
 val move_to_coordinates : game_update -> coordinates -> coordinates -> color -> game_update
 
-val possible_moves : game_update -> coordinates -> color -> direction_deplacement list
+val possible_moves_directions : game_update -> coordinates -> color -> direction_deplacement list
 
 val apply : game_update -> player -> action -> game_update
 
-val cant_move : player -> game_update -> bool
+val cant_move_piece_on_board : player -> game_update -> bool
 
 val lost : game_update -> player -> bool
 

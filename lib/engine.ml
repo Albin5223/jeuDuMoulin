@@ -567,7 +567,8 @@ let move_to_direction (game : game_update) ((i, j) : coordinates) (d : direction
   @param (i,j) : the coordinate of the piece
   @param player : the color of the player that wants to move the piece
 *)
-let possible_moves (game : game_update) ((i, j) : coordinates) (player : color) : direction_deplacement list =
+let possible_moves_directions (game : game_update) ((i, j) : coordinates) (player : color) : direction_deplacement list
+    =
     let rec aux (game : game_update) ((i, j) : coordinates) (player : color) (acc : direction_deplacement list) :
         direction_deplacement list =
         match acc with
@@ -584,28 +585,15 @@ let possible_moves (game : game_update) ((i, j) : coordinates) (player : color) 
     aux game (i, j) player [Up; Down; Right; Left; Up_right; Up_left; Down_right; Down_left]
 
 (**
-  Function to apply a move in a game_update
-  @param game_update : the game state
-  @param player : the player that wants to apply the move
-  @param move : the move to apply
-*)
-let apply (game_update : game_update) (player : player) (action : action) : game_update =
-    match (action, player.phase) with
-    | Placing c, Placing -> place_start_piece game_update c player.color
-    | Moving (c, dir), Moving -> move_to_direction game_update c dir player.color
-    | Flying (c1, c2), Flying -> move_to_coordinates game_update c1 c2 player.color
-    | _ -> not_updated_game game_update
-
-(**
     This function return a bool if the player can't move
     @param player : the player
     @param game : the game
 *)
-let cant_move (player : player) (game : game_update) : bool =
+let cant_move_piece_on_board (player : player) (game : game_update) : bool =
     let rec aux (player : player) (game : game_update) (bag : coordinates list) : bool =
         match bag with
         | [] -> true
-        | (x, y) :: xs -> List.length (possible_moves game (x, y) player.color) = 0 && aux player game xs
+        | (x, y) :: xs -> List.length (possible_moves_directions game (x, y) player.color) = 0 && aux player game xs
     in
     aux player game player.bag
 
@@ -616,7 +604,7 @@ let cant_move (player : player) (game : game_update) : bool =
 *)
 let lost (game : game_update) (player : player) : bool =
     match player.phase with
-    | Moving -> cant_move player game
+    | Moving -> cant_move_piece_on_board player game
     | _ -> player.nb_pieces_on_board <= 2 && player.piece_placed = game.max_pieces
 
 (**
@@ -632,30 +620,40 @@ let init_player (c : color) : player =
   @param max_pieces the maximum number of pieces that a player can place on the board
 *)
 let update_player_phase player max_pieces =
-    match player.phase with
-    | Placing ->
-        if player.piece_placed = max_pieces (* if the player has placed all of his pieces, he can start moving them *)
-        then
-          {
-            phase = Moving;
-            color = player.color;
-            piece_placed = player.piece_placed;
-            nb_pieces_on_board = player.nb_pieces_on_board;
-            bag = player.bag;
-          }
-        else player (* else, no changes *)
-    | Moving ->
-        if player.nb_pieces_on_board = 3 (* if the player has only 3 pieces left, he can start flying them *)
-        then
-          {
-            phase = Flying;
-            color = player.color;
-            piece_placed = player.piece_placed;
-            nb_pieces_on_board = player.nb_pieces_on_board;
-            bag = player.bag;
-          }
-        else player (* else, no changes *)
-    | Flying -> player (* if the player is already flying, no changes *)
+    if player.piece_placed = max_pieces && player.nb_pieces_on_board = 3
+    then
+      {
+        phase = Flying;
+        color = player.color;
+        piece_placed = player.piece_placed;
+        nb_pieces_on_board = player.nb_pieces_on_board;
+        bag = player.bag;
+      }
+    else
+      match player.phase with
+      | Placing ->
+          if player.piece_placed = max_pieces (* if the player has placed all of his pieces, he can start moving them *)
+          then
+            {
+              phase = Moving;
+              color = player.color;
+              piece_placed = player.piece_placed;
+              nb_pieces_on_board = player.nb_pieces_on_board;
+              bag = player.bag;
+            }
+          else player (* else, no changes *)
+      | Moving ->
+          if player.nb_pieces_on_board = 3 (* if the player has only 3 pieces left, he can start flying them *)
+          then
+            {
+              phase = Flying;
+              color = player.color;
+              piece_placed = player.piece_placed;
+              nb_pieces_on_board = player.nb_pieces_on_board;
+              bag = player.bag;
+            }
+          else player (* else, no changes *)
+      | Flying -> player (* if the player is already flying, no changes *)
 
 (**
 Private function that update the phase of both players in the game_update
@@ -732,3 +730,22 @@ let get_all_free_positions (game_update : game_update) : coordinates list =
           | _ -> aux board acc i (j + 1)
     in
     aux game_update.board [] 0 0
+
+(**
+  Function to apply a move in a game_update
+  @param game_update : the game state
+  @param player : the player that wants to apply the move
+  @param move : the move to apply
+*)
+let apply (game_update : game_update) (player : player) (action : action) : game_update =
+    match (action, player.phase) with
+    | Placing c, Placing ->
+        let newGU = place_start_piece game_update c player.color in
+        update_phase newGU
+    | Moving (c, dir), Moving ->
+        let newGU = move_to_direction game_update c dir player.color in
+        update_phase newGU
+    | Flying (c1, c2), Flying ->
+        let newGU = move_to_coordinates game_update c1 c2 player.color in
+        update_phase newGU
+    | _ -> not_updated_game game_update

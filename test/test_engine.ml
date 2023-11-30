@@ -195,8 +195,15 @@ let test_players_moving_phase =
         let game_update = init_game_update template in
         let game_update_after_placing = simulate_placing_all_pieces game_update (get_max_pieces game_update) in
         pretty_print_board (get_board game_update_after_placing);
-        (get_player_1 game_update_after_placing).phase = Moving
-        && (get_player_2 game_update_after_placing).phase = Moving)
+        pretty_print_phase (get_player_1 game_update_after_placing).phase;
+        pretty_print_phase (get_player_2 game_update_after_placing).phase;
+        match template with
+        | Three_mens_morris ->
+            (get_player_1 game_update_after_placing).phase = Flying
+            && (get_player_2 game_update_after_placing).phase = Flying
+        | _ ->
+            (get_player_1 game_update_after_placing).phase = Moving
+            && (get_player_2 game_update_after_placing).phase = Moving)
 
 let () =
     let open Alcotest in
