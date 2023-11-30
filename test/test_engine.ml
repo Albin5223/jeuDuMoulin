@@ -1,7 +1,6 @@
 open Mill.Engine
 open Utils
 
-
 let test_place_piece =
     let open QCheck in
     Test.make ~name:"place_piece" ~count:1000 (triple arbitrary_color small_int small_int) (fun (color, x, y) ->
@@ -141,36 +140,49 @@ let test_place_exceed_max_pieces =
           && (get_player_1 updated_game_state).piece_placed <= max_piece_from_template Nine_mens_morris
         else (get_player_1 initial_game_state).piece_placed = (get_player_1 updated_game_state).piece_placed)
 
-
-
-
-
-
-      
 let test_template_property =
-let open QCheck in
-Test.make ~name:"Test template property" ~count:50 arbitrary_templates (fun template ->
-    let game_update = init_game_update template in
-        let expected_empty_cells = match template with
+    let open QCheck in
+    Test.make ~name:"Test template property" ~count:50 arbitrary_templates (fun template ->
+        let game_update = init_game_update template in
+        let expected_empty_cells =
+            match template with
             | Three_mens_morris -> 9
             | Six_mens_morris -> 16
             | Nine_mens_morris -> 24
             | Twelve_mens_morris -> 24
-          in
-          List.length (get_all_free_positions game_update) = expected_empty_cells
-        )
-
+        in
+        List.length (get_all_free_positions game_update) = expected_empty_cells)
 
 let test_players_placing_phase =
-  let open QCheck in
-  Test.make ~name:"Test players placing phase" ~count:50 arbitrary_templates (fun template ->
-    let game_update = init_game_update template in
-    (get_player_1 game_update).phase = Placing && (get_player_2 game_update).phase = Placing && 
-    (get_player_1 game_update).piece_placed = 0 && (get_player_2 game_update).piece_placed = 0
-    && (get_player_1 game_update).nb_pieces_on_board = 0 && (get_player_2 game_update).nb_pieces_on_board = 0
-  )
+    let open QCheck in
+    Test.make ~name:"Test players placing phase" ~count:50 arbitrary_templates (fun template ->
+        let game_update = init_game_update template in
+        (get_player_1 game_update).phase = Placing
+        && (get_player_2 game_update).phase = Placing
+        && (get_player_1 game_update).piece_placed = 0
+        && (get_player_2 game_update).piece_placed = 0
+        && (get_player_1 game_update).nb_pieces_on_board = 0
+        && (get_player_2 game_update).nb_pieces_on_board = 0)
 
-          
+let simulate_placing_all_pieces game_update max_pieces =
+    let rec helper game_update player nb_all_placing =
+        if nb_all_placing > 0
+        then
+          let coord = List.hd (get_all_free_positions game_update) in
+          let newGU = apply game_update player (Placing coord) in
+          helper newGU (get_opponent game_update player.color) (nb_all_placing - 1)
+        else game_update
+    in
+    helper game_update (get_player_1 game_update) (max_pieces * 2)
+
+let test_players_moving_phase =
+    let open QCheck in
+    Test.make ~name:"Test players moving phase" ~count:50 arbitrary_templates (fun template ->
+        let game_update = init_game_update template in
+        let game_update_after_placing = simulate_placing_all_pieces game_update (get_max_pieces game_update) in
+        pretty_print_board (get_board game_update_after_placing);
+        (get_player_1 game_update_after_placing).phase = Moving
+        && (get_player_2 game_update_after_placing).phase = Moving)
 
 let () =
     let open Alcotest in
@@ -183,5 +195,5 @@ let () =
         ("Test place more than max piece", [QCheck_alcotest.to_alcotest test_place_exceed_max_pieces]);
         ("Test template property", [QCheck_alcotest.to_alcotest test_template_property]);
         ("Test players placing phase", [QCheck_alcotest.to_alcotest test_players_placing_phase]);
-    
+        ("Test players moving phase", [QCheck_alcotest.to_alcotest test_players_moving_phase]);
       ]
