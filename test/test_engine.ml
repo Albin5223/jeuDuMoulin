@@ -180,9 +180,32 @@ let test_players_moving_phase =
     Test.make ~name:"Test players moving phase" ~count:50 arbitrary_templates (fun template ->
         let game_update = init_game_update template in
         let game_update_after_placing = simulate_placing_all_pieces game_update (get_max_pieces game_update) in
-        pretty_print_board (get_board game_update_after_placing);
         (get_player_1 game_update_after_placing).phase = Moving
         && (get_player_2 game_update_after_placing).phase = Moving)
+
+
+
+let arbitrary_valid = QCheck.make gen_valid_coords_nine
+let test_get_square_valid_coords =
+  let open QCheck in
+    Test.make ~name:"Test get_square with valid coords" ~count:50 arbitrary_valid (fun coords ->
+      let gu = init_game_update Nine_mens_morris in
+      print_cord coords;
+        match get_square (get_board gu) coords with
+          | None -> false
+          | Some _ -> true
+  )
+
+  let arbitrary_invalid = QCheck.make gen_invalid_coords_nine
+  let test_get_square_invalid_coords =
+    let open QCheck in
+      Test.make ~name:"Test get_square with valid coords" ~count:50 arbitrary_invalid (fun coords ->
+        print_cord coords;
+        let gu = init_game_update Nine_mens_morris in
+          match get_square (get_board gu) coords with
+            | None -> true
+            | Some _ -> false
+  )
 
 let () =
     let open Alcotest in
@@ -196,4 +219,6 @@ let () =
         ("Test template property", [QCheck_alcotest.to_alcotest test_template_property]);
         ("Test players placing phase", [QCheck_alcotest.to_alcotest test_players_placing_phase]);
         ("Test players moving phase", [QCheck_alcotest.to_alcotest test_players_moving_phase]);
+        ("Test get_square with valid coords", [QCheck_alcotest.to_alcotest test_get_square_valid_coords]);
+        ("Test get_square with invalid coords", [QCheck_alcotest.to_alcotest test_get_square_invalid_coords]);
       ]
