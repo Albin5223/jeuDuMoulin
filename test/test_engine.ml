@@ -1,6 +1,20 @@
 open Mill.Engine
 open Utils
 
+let test_move_to_cordinates (game_up : game_update) (col : color) =
+    let open QCheck in
+    Test.make ~name:"move_to_coord" ~count:1000 (quad small_int small_int small_int small_int)
+      (fun (cx1, cx2, cy1, cy2) ->
+        let i1 = cx1 mod 9 in
+        let j1 = cx2 mod 9 in
+        let i2 = cy1 mod 9 in
+        let j2 = cy2 mod 9 in
+        let dep = get_square (get_board game_up) (i1, j1) in
+        let arr = get_square (get_board game_up) (i2, j2) in
+        if dep = Some (Color col) && arr = Some Empty
+        then not (equals_board (get_board game_up) (get_board (move_to_coordinates game_up (i1, j1) (i2, j2) col)))
+        else equals_board (get_board game_up) (get_board (move_to_coordinates game_up (i1, j1) (i2, j2) col)))
+
 let test_place_piece =
     let open QCheck in
     Test.make ~name:"place_piece" ~count:1000 (triple arbitrary_color small_int small_int) (fun (color, x, y) ->
@@ -180,8 +194,16 @@ let test_players_moving_phase =
     Test.make ~name:"Test players moving phase" ~count:50 arbitrary_templates (fun template ->
         let game_update = init_game_update template in
         let game_update_after_placing = simulate_placing_all_pieces game_update (get_max_pieces game_update) in
-        (get_player_1 game_update_after_placing).phase = Moving
-        && (get_player_2 game_update_after_placing).phase = Moving)
+        pretty_print_board (get_board game_update_after_placing);
+        pretty_print_phase (get_player_1 game_update_after_placing).phase;
+        pretty_print_phase (get_player_2 game_update_after_placing).phase;
+        match template with
+        | Three_mens_morris ->
+            (get_player_1 game_update_after_placing).phase = Flying
+            && (get_player_2 game_update_after_placing).phase = Flying
+        | _ ->
+            (get_player_1 game_update_after_placing).phase = Moving
+            && (get_player_2 game_update_after_placing).phase = Moving)
 
 
 
@@ -211,6 +233,11 @@ let () =
     let open Alcotest in
     run "TEST ENGINE"
       [
+        ( "Test move_to_cordinates",
+          [
+            (let game_up = init_game_update Twelve_mens_morris in
+             QCheck_alcotest.to_alcotest (test_move_to_cordinates game_up Black));
+          ] );
         ("Test place piece", [QCheck_alcotest.to_alcotest test_place_piece]);
         ("Test mill", [QCheck_alcotest.to_alcotest test_mill]);
         ("Test mill from position", [QCheck_alcotest.to_alcotest check_mill_from_position_property]);

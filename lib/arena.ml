@@ -94,7 +94,7 @@ let player_random (random : int -> int) : player_strategie =
             let rec choise_mouv () =
                 let i = random (List.length player.bag) in
                 let coord = List.nth player.bag i in
-                let possible_move = possible_moves game_update coord player.color in
+                let possible_move = possible_moves_directions game_update coord player.color in
                 if List.length possible_move = 0
                 then choise_mouv ()
                 else
@@ -148,7 +148,7 @@ let give_direction (dir : direction_deplacement) (l : direction_deplacement list
 
 (**private function*)
 let affiche_dir ((i, j) : coordinates) (game : game_update) (player : color) : unit =
-    let deplacements = possible_moves game (i, j) player in
+    let deplacements = possible_moves_directions game (i, j) player in
     let l1 =
         give_direction Up_left deplacements ^ give_direction Up deplacements ^ give_direction Up_right deplacements
     in

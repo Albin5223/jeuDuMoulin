@@ -14,7 +14,7 @@ let test_config_end_game =
         let player1 = player_random randomSeed in
         let player2 = player_random randomSeed in
         let end_game = arena player1 player2 Nine_mens_morris in
-        cant_move end_game.loser end_game.game || end_game.loser.nb_pieces_on_board <= 2)
+        cant_move_piece_on_board end_game.loser end_game.game || end_game.loser.nb_pieces_on_board <= 2)
 
 (**This test check that with the same seed, we will get the same end*)
 let testSeed =
