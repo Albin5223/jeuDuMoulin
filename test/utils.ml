@@ -152,12 +152,11 @@ let player_gen : player Gen.t =
     let* bag = gen_bag in
     return { phase; color; piece_placed; nb_pieces_on_board; bag }
 
-
-let gen_valid_coords_nine  =
+let gen_valid_coords_nine =
     let size = max_piece_from_template Nine_mens_morris in
-        let gen_coord = Gen.int_range 0 (size - 1) in
-            Gen.pair gen_coord gen_coord
+    let gen_coord = Gen.int_range 0 (size - 1) in
+    Gen.pair gen_coord gen_coord
 
 let gen_invalid_coords_nine =
-    let gen_coord = Gen.oneof [Gen.int_range (-100) (-10); Gen.int_range (100) (1000)] in
-        Gen.pair gen_coord gen_coord
+    let gen_coord = Gen.oneof [Gen.int_range (-100) (-10); Gen.int_range 100 1000] in
+    Gen.pair gen_coord gen_coord
