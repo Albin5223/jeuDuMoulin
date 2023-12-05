@@ -36,3 +36,7 @@ val arbitrary_triple_template_coordinates_color :
 val phase_gen : Mill.Engine.phase QCheck.Gen.t
 
 val player_gen : Mill.Engine.player QCheck.Gen.t
+
+val gen_valid_coords_nine : (int * int) QCheck.Gen.t
+
+val gen_invalid_coords_nine : (int * int) QCheck.Gen.t
