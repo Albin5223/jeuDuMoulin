@@ -75,20 +75,24 @@ let rec possible_mill_flying game_update color (i, j) counter =
     else possible_mill_flying game_update color (i, j + 1) counter
 
 let rec set_up_mill game_update color action_list =
-  match action_list with
-  |[] -> None
-  |hd::tl -> let newGU = apply game_update (get_player game_update color) hd in
-    match hd with
-    |Placing _ -> (match possible_mill_placing newGU color (0, 0) with
-        |None -> set_up_mill game_update color tl
-        |Some _ -> Some hd)
-    |Moving _ -> (match possible_mill_moving newGU color (0, 0) false with
-        |None -> set_up_mill game_update color tl
-        |Some _ -> Some hd)
-    |Flying _ -> (match possible_mill_flying newGU color (0, 0) false with
-        |None -> set_up_mill game_update color tl
-        |Some _ -> Some hd)
-    | _ -> None
+    match action_list with
+    | [] -> None
+    | hd :: tl -> (
+        let newGU = apply game_update (get_player game_update color) hd in
+        match hd with
+        | Placing _ -> (
+            match possible_mill_placing newGU color (0, 0) with
+            | None -> set_up_mill game_update color tl
+            | Some _ -> Some hd)
+        | Moving _ -> (
+            match possible_mill_moving newGU color (0, 0) false with
+            | None -> set_up_mill game_update color tl
+            | Some _ -> Some hd)
+        | Flying _ -> (
+            match possible_mill_flying newGU color (0, 0) false with
+            | None -> set_up_mill game_update color tl
+            | Some _ -> Some hd)
+        | _ -> None)
 
 (* ---------- All possible ---------- *)
 
@@ -145,51 +149,51 @@ let rec all_possible_remove game_update color (i, j) acc =
 let aux_placing game_update color =
     match possible_mill_placing game_update color (0, 0) with
     | Some (Placing (i, j)) -> Placing (i, j)
-    | _ ->
+    | _ -> (
         match possible_mill_placing game_update (reverse_color color) (0, 0) with
         | Some (Placing (i, j)) -> Placing (i, j)
-        | _ ->
+        | _ -> (
             let all_options = all_possible_placing (get_board game_update) (0, 0) [] in
             match set_up_mill game_update color all_options with
-            |Some (Placing (i, j)) -> Placing (i, j)
-            | _ -> 
-              Random.self_init ();
-              let i = Random.int (List.length all_options) in
-              List.nth all_options i
+            | Some (Placing (i, j)) -> Placing (i, j)
+            | _ ->
+                Random.self_init ();
+                let i = Random.int (List.length all_options) in
+                List.nth all_options i))
 
 let aux_moving game_update color =
     let move_option = possible_mill_moving game_update color (0, 0) false in
     match move_option with
     | Some (Moving (x, y)) -> Moving (x, y)
-    | _ ->
+    | _ -> (
         let counter_mill_option = possible_mill_moving game_update color (0, 0) true in
         match counter_mill_option with
         | Some (Moving (x, y)) -> Moving (x, y)
-        | _ ->
+        | _ -> (
             let all_options = all_possible_moves game_update color (0, 0) [] in
             match set_up_mill game_update color all_options with
-            |Some (Moving (x, y)) -> Moving (x, y)
-            |_ ->
-              Random.self_init ();
-              let i = Random.int (List.length all_options) in
-              List.nth all_options i
+            | Some (Moving (x, y)) -> Moving (x, y)
+            | _ ->
+                Random.self_init ();
+                let i = Random.int (List.length all_options) in
+                List.nth all_options i))
 
 let aux_flying game_update color =
     let fly_option = possible_mill_flying game_update color (0, 0) false in
     match fly_option with
     | Some (Flying (x, y)) -> Flying (x, y)
-    | _ ->
+    | _ -> (
         let counter_mill_option = possible_mill_flying game_update color (0, 0) true in
         match counter_mill_option with
         | Some (Flying (x, y)) -> Flying (x, y)
-        | _ ->
-          let all_options = all_possible_fly game_update color (0, 0) [] in
-          match set_up_mill game_update color all_options with
-          |Some (Flying (x, y)) -> Flying (x, y)
-          | _ -> 
-            Random.self_init ();
-            let i = Random.int (List.length all_options) in
-            List.nth all_options i
+        | _ -> (
+            let all_options = all_possible_fly game_update color (0, 0) [] in
+            match set_up_mill game_update color all_options with
+            | Some (Flying (x, y)) -> Flying (x, y)
+            | _ ->
+                Random.self_init ();
+                let i = Random.int (List.length all_options) in
+                List.nth all_options i))
 
 let rec aux_remove game_update color (i, j) =
     if i = board_length (get_board game_update)
