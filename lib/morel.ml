@@ -41,7 +41,7 @@ let rec minimax depth curr_move curr_state player ai_color : (int * (action * he
       Node (nexts, (value, (curr_move, new_state)))
 
 let better_ai move place fly (state : game_update) (player : player) : action =
-    pretty_print_board (get_board state);
+  (*pretty_print_board (get_board state); *)
     let new_state = { previous_state = None; current_state = state; ai_to_move = true } in
     possible_action state player
     |> List.map (fun action ->
