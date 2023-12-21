@@ -49,7 +49,9 @@ let private_play game_update (player1 : player_strategie) (private_player1 : pla
 *)
 let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) : end_game =
     (* recursive function that play a turn for each player *)
-    let rec turn (game_update : game_update) =
+    let rec turn n (game_update : game_update) =
+      if n >= 1000 then
+        failwith "Game too long";
         (* we update the phase of the players *)
       try
         let game_update = update_phase game_update in
@@ -68,13 +70,13 @@ let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) 
             else
               (* else, we play the turn for player2 *)
               let newGU = private_play newGU p2 (get_player_2 newGU) (get_player_1 newGU) in
-              turn newGU (* we play the next turn *)
+              turn (n+1) newGU (* we play the next turn *)
           with
       | _ -> { game = game_update; winner = get_player_2 game_update; loser = get_player_1 game_update }
       with
       | _ -> { game = game_update; winner = get_player_1 game_update; loser = get_player_2 game_update }
     in
-    turn (init_game_update template)
+    turn 0 (init_game_update template)
 
 (**
     Player who plays ramdomly
