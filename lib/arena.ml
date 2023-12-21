@@ -85,6 +85,8 @@ let player_random (random : int -> int) : player_strategie =
     let strategie_play (game_update : game_update) (player : player) : action =
         match player.phase with
         | Placing ->
+            Format.printf "RANDOM Placing@.";
+            let () = pretty_print_board (get_board game_update) in
             (* When the bot is in Placing phase, he chooses a random square where to place, and repeat that until he finds a correct position *)
             let rec choise_coord () =
                 let i = random (board_length (get_board game_update)) in
@@ -96,6 +98,8 @@ let player_random (random : int -> int) : player_strategie =
             let coord = choise_coord () in
             Placing coord
         | Moving ->
+            Format.printf "RANDOM Moving@.";
+            let () = pretty_print_board (get_board game_update) in
             (* When the bot is in Moving phase, he chooses a random piece in his bag, and if the piece is not blocked, he moves it to a random direction, else, repeat the operation *)
             let rec choise_mouv () =
                 let i = random (List.length player.bag) in
@@ -110,6 +114,8 @@ let player_random (random : int -> int) : player_strategie =
             in
             choise_mouv ()
         | Flying ->
+            Format.printf "RANDOM Flying@.";
+            let () = pretty_print_board (get_board game_update) in
             (* When the bot is in Flying phase, he chooses a random square where to place, and repeat that until he finds a correct position, then chooses a random piece in his bag to place it *)
             let rec choise_coord () =
                 let i = random (board_length (get_board game_update)) in
@@ -125,6 +131,8 @@ let player_random (random : int -> int) : player_strategie =
     in
     (* The removing strategy is here *)
     let strategie_remove (game_update : game_update) (player : player) : action =
+        Format.printf "RANDOM Removing@.";
+        let () = pretty_print_board (get_board game_update) in
         let i = random (List.length (get_opponent game_update player.color).bag) in
         Remove (List.nth (get_opponent game_update player.color).bag i)
     in
