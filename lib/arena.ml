@@ -51,6 +51,7 @@ let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) 
     (* recursive function that play a turn for each player *)
     let rec turn (game_update : game_update) =
         (* we update the phase of the players *)
+      try
         let game_update = update_phase game_update in
         (* if the player1 has lost, we return the game_update *)
         if lost game_update (get_player_1 game_update)
@@ -58,15 +59,20 @@ let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) 
         else
           (* we play the turn for player1 *)
           let newGU = private_play game_update p1 (get_player_1 game_update) (get_player_2 game_update) in
-          (* we update the phase of the players *)
-          let newGU = update_phase newGU in
-          (* if the player2 has lost, we return the game_update *)
-          if lost newGU (get_player_2 newGU)
-          then { game = newGU; winner = get_player_1 newGU; loser = get_player_2 newGU }
-          else
-            (* else, we play the turn for player2 *)
-            let newGU = private_play newGU p2 (get_player_2 newGU) (get_player_1 newGU) in
-            turn newGU (* we play the next turn *)
+          try
+            (* we update the phase of the players *)
+            let newGU = update_phase newGU in
+            (* if the player2 has lost, we return the game_update *)
+            if lost newGU (get_player_2 newGU)
+            then { game = newGU; winner = get_player_1 newGU; loser = get_player_2 newGU }
+            else
+              (* else, we play the turn for player2 *)
+              let newGU = private_play newGU p2 (get_player_2 newGU) (get_player_1 newGU) in
+              turn newGU (* we play the next turn *)
+          with
+      | _ -> { game = game_update; winner = get_player_2 game_update; loser = get_player_1 game_update }
+      with
+      | _ -> { game = game_update; winner = get_player_1 game_update; loser = get_player_2 game_update }
     in
     turn (init_game_update template)
 
@@ -121,6 +127,23 @@ let player_random (random : int -> int) : player_strategie =
     let strategie_remove (game_update : game_update) (player : player) : action =
         let i = random (List.length (get_opponent game_update player.color).bag) in
         Remove (List.nth (get_opponent game_update player.color).bag i)
+    in
+    { strategie_play; strategie_remove }
+
+let player_random2 _ =
+    (* The placing/moving strategy is here *)
+    let strategie_play _ player =
+        match player.phase with
+        | Placing ->
+            Placing (0, 0)
+        | Moving ->
+          Moving ((0, 0), Up)
+        | Flying ->
+            Flying ((0,0), (1, 1))
+    in
+    (* The removing strategy is here *)
+    let strategie_remove _ _ =
+        Remove (0, 0)
     in
     { strategie_play; strategie_remove }
 
