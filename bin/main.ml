@@ -44,8 +44,8 @@ let () =
               let result =
                 arena player_i player_j Nine_mens_morris in
               match result.winner.color with
-              | Black -> incr wins_i
-              | White -> incr wins_j
+              | White -> incr wins_i
+              | Black -> incr wins_j
             with
             | _ -> (* Draw: no-one wins *) ()
           end;
@@ -53,8 +53,8 @@ let () =
               let result =
                 arena player_j player_i Nine_mens_morris in
               match result.winner.color with
-              | Black -> incr wins_j
-              | White -> incr wins_i
+              | White -> incr wins_j
+              | Black -> incr wins_i
             with _ -> (* Draw: no-one wins *)  ()
           end;
         done;
