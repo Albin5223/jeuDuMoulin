@@ -49,7 +49,7 @@ let sort_actions_by_priority (l : action list) =
 (**
     My player
 *)
-let bot_SOAN _ (*(random : int -> int)*) : player_strategie =
+let bot_SOAN (*(random : int -> int)*) : player_strategie =
     (* The placing/moving strategy is here *)
     let strategie_play (game_update : game_update) (player : player) : action =
         match player.phase with
