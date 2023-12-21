@@ -49,13 +49,13 @@ let sort_actions_by_priority (l : action list) =
 (**
     My player
 *)
-let bot_SOAN (*(random : int -> int)*) : player_strategie =
+let bot_SOAN _ (*(random : int -> int)*) : player_strategie =
     (* The placing/moving strategy is here *)
     let strategie_play (game_update : game_update) (player : player) : action =
         match player.phase with
         | Placing ->
-            Format.printf "ME Placing@.";
-            let () = pretty_print_board (get_board game_update) in
+           (* Format.printf "ME Placing@."; *)
+           (* let () = pretty_print_board (get_board game_update) in *)
             let placing_action =
                 let possible_placings = get_all_free_positions game_update in
                 let possible_mills =
@@ -78,8 +78,8 @@ let bot_SOAN (*(random : int -> int)*) : player_strategie =
                Format.printf "@."; *)
             placing_action
         | Moving ->
-            Format.printf "ME Moving@.";
-            let () = pretty_print_board (get_board game_update) in
+           (* Format.printf "ME Moving@."; *)
+           (* let () = pretty_print_board (get_board game_update) in *)
 
             let moving_action =
                 let player_pieces_coord_list = pieces_coord_list game_update player in
@@ -132,8 +132,8 @@ let bot_SOAN (*(random : int -> int)*) : player_strategie =
             Format.printf "@."; *)
             moving_action
         | Flying ->
-            Format.printf "ME Flying@.";
-            let () = pretty_print_board (get_board game_update) in
+           (* Format.printf "ME Flying@."; *)
+           (* let () = pretty_print_board (get_board game_update) in *)
 
             (* Move the piece that has the least adjacent moves possible *)
             let departure_coord =
@@ -166,8 +166,8 @@ let bot_SOAN (*(random : int -> int)*) : player_strategie =
     in
 
     let strategie_remove (game_update : game_update) (player : player) : action =
-        Format.printf "ME Removing@.";
-        let () = pretty_print_board (get_board game_update) in
+      (* Format.printf "ME Removing@."; *)
+      (* let () = pretty_print_board (get_board game_update) in *)
 
         let removing_action =
             let opponent = get_opponent game_update player.color in
