@@ -17,7 +17,8 @@ let players = [| wrap "Mill.random" (player_random randomSeed);
                  wrap "Friedmann" Mill.Friedmann.smart_player;
                  wrap "Joffrin" Mill.Joffrin.bot_evan;
                  wrap "Debessel" Mill.Debessel.player_ia;
-                 wrap "Arrous" Mill.Arrous.player_classic_bot_Thomas_Arrous; |]
+                 wrap "Arrous" Mill.Arrous.player_classic_bot_Thomas_Arrous;
+                 wrap "Eljamal" Mill.Eljamal.player_ali |]
 
 let score = Array.init (Array.length players) (fun _ -> 0)
 
