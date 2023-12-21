@@ -11,7 +11,7 @@ let wrap s player =
         strategie_remove = (fun g p -> print (); player.strategie_remove g p) })
 
 let players = [| wrap "Mill.random" player_random;
-                 wrap "Mill.random2" player_random2;|]
+                 wrap "Soan" Mill.Soan.bot_SOAN; |]
 
 let score = Array.init (Array.length players) (fun _ -> 0)
 
