@@ -2,6 +2,18 @@
 
 Implementation of Nine men's morris (A.K.A `Mill`) in OCaml.
 
+## Tournament
+
+To run a tournament, use:
+
+```bash
+dune exec mill > result.txt
+```
+
+The standard error output shows the current player (in case someone
+goes into an infinite loop) while `result.txt` shows the result of the
+tournament.
+
 ## Development environment setup
 
 Install [Opam](https://opam.ocaml.org/doc/Install.html), the OCaml
