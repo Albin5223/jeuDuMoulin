@@ -33,7 +33,7 @@ let testSeed =
         let game2 = arena player1 player2 Nine_mens_morris in
         equals_end_game game1 game2)
 
-let test_error_player =
+let _test_error_player =
     let open QCheck in
     Test.make ~count:1000 ~name:"for all game : the dumb bot will never finish the game"
       (pair small_int arbitrary_templates) (fun (x, template) ->
@@ -48,7 +48,7 @@ let test_error_player =
         | Not_Allowed _ | Invalid_Strategy _ -> true
         | _ -> false)
 
-let test_player_invalid_pos =
+let _test_player_invalid_pos =
     let open Alcotest in
     [
       test_case "Invalid move" `Quick (fun () ->
@@ -65,6 +65,10 @@ let () =
       [
         ("Test with Seed generate", [QCheck_alcotest.to_alcotest testSeed]);
         ("Test configuration end game", [QCheck_alcotest.to_alcotest test_config_end_game]);
-        ("Test error player", [QCheck_alcotest.to_alcotest test_error_player]);
+        (* XXX: not true anymore, I will kill it
+          ("Test error player", [QCheck_alcotest.to_alcotest test_error_player]);
+         *)
+        (* XXX: not true anymore, I've changed the behavior of arena on errors
         ("player generates only invalide positions", test_player_invalid_pos);
+         *)
       ]
