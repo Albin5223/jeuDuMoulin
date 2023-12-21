@@ -5,13 +5,12 @@ let randomSeed n = Random.int n
 
 let wrap s player =
   let print () = Printf.eprintf "\r                    "; Printf.eprintf "\r%s%!" s in
-  (s, fun seed ->
-      let player = player seed in
-      { strategie_play = (fun g p -> print (); player.strategie_play g p);
+  (s, { strategie_play = (fun g p -> print (); player.strategie_play g p);
         strategie_remove = (fun g p -> print (); player.strategie_remove g p) })
 
-let players = [| wrap "Mill.random" player_random;
-                 wrap "Soan" Mill.Soan.bot_SOAN; |]
+let players = [| wrap "Mill.random" (player_random randomSeed);
+                 wrap "Soan" Mill.Soan.bot_SOAN;
+                 wrap "Lecomte" Mill.Lecomte.player_georges_lecomte; |]
 
 let score = Array.init (Array.length players) (fun _ -> 0)
 
@@ -35,7 +34,7 @@ let () =
             end;
           begin try
               let result =
-                arena (player_i randomSeed) (player_j randomSeed) Nine_mens_morris in
+                arena player_i player_j Nine_mens_morris in
               match result.winner.color with
               | Black -> incr wins_i
               | White -> incr wins_j
@@ -44,7 +43,7 @@ let () =
           end;
           begin try
               let result =
-                arena (player_j randomSeed) (player_i randomSeed) Nine_mens_morris in
+                arena player_j player_i Nine_mens_morris in
               match result.winner.color with
               | Black -> incr wins_j
               | White -> incr wins_i
