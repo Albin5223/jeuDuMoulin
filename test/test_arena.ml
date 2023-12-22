@@ -66,9 +66,9 @@ let () =
         ("Test with Seed generate", [QCheck_alcotest.to_alcotest testSeed]);
         ("Test configuration end game", [QCheck_alcotest.to_alcotest test_config_end_game]);
         (* XXX: not true anymore, I will kill it
-          ("Test error player", [QCheck_alcotest.to_alcotest test_error_player]);
-         *)
+           ("Test error player", [QCheck_alcotest.to_alcotest test_error_player]);
+        *)
         (* XXX: not true anymore, I've changed the behavior of arena on errors
-        ("player generates only invalide positions", test_player_invalid_pos);
-         *)
+           ("player generates only invalide positions", test_player_invalid_pos);
+        *)
       ]

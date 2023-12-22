@@ -54,8 +54,8 @@ let bot_SOAN (*(random : int -> int)*) : player_strategie =
     let strategie_play (game_update : game_update) (player : player) : action =
         match player.phase with
         | Placing ->
-           (* Format.printf "ME Placing@."; *)
-           (* let () = pretty_print_board (get_board game_update) in *)
+            (* Format.printf "ME Placing@."; *)
+            (* let () = pretty_print_board (get_board game_update) in *)
             let placing_action =
                 let possible_placings = get_all_free_positions game_update in
                 let possible_mills =
@@ -78,9 +78,8 @@ let bot_SOAN (*(random : int -> int)*) : player_strategie =
                Format.printf "@."; *)
             placing_action
         | Moving ->
-           (* Format.printf "ME Moving@."; *)
-           (* let () = pretty_print_board (get_board game_update) in *)
-
+            (* Format.printf "ME Moving@."; *)
+            (* let () = pretty_print_board (get_board game_update) in *)
             let moving_action =
                 let player_pieces_coord_list = pieces_coord_list game_update player in
                 let coord_dirs_list =
@@ -96,10 +95,10 @@ let bot_SOAN (*(random : int -> int)*) : player_strategie =
                       coord_dirs_list
                     |> List.flatten
                 in
-                let sorted_movings = List.map (fun (c, d) -> Moving (c, d)) possible_movings |> sort_actions_by_priority in
-                let possible_mills =
-                    sorted_movings |> actions_affect_mill game_update player
+                let sorted_movings =
+                    List.map (fun (c, d) -> Moving (c, d)) possible_movings |> sort_actions_by_priority
                 in
+                let possible_mills = sorted_movings |> actions_affect_mill game_update player in
                 if not (List.is_empty possible_mills)
                 then possible_mills |> List.hd
                 else
@@ -119,21 +118,23 @@ let bot_SOAN (*(random : int -> int)*) : player_strategie =
                       |> List.flatten
                   in
                   let enemy_possible_mills =
-                    List.map (fun (c, d) -> Moving (c, d)) enemy_possible_movings |> sort_actions_by_priority |> actions_affect_mill game_update opponent
+                      List.map (fun (c, d) -> Moving (c, d)) enemy_possible_movings
+                      |> sort_actions_by_priority
+                      |> actions_affect_mill game_update opponent
                   in
                   if not (List.is_empty enemy_possible_mills)
                   then enemy_possible_mills |> List.hd
                   else sorted_movings |> List.hd
             in
             (* Format.printf "Moving from ";
-            print_cord departure;
-            Format.printf " to ";
-            print_cord (coordinates_from_directions arrival departure);
-            Format.printf "@."; *)
+               print_cord departure;
+               Format.printf " to ";
+               print_cord (coordinates_from_directions arrival departure);
+               Format.printf "@."; *)
             moving_action
         | Flying ->
-           (* Format.printf "ME Flying@."; *)
-           (* let () = pretty_print_board (get_board game_update) in *)
+            (* Format.printf "ME Flying@."; *)
+            (* let () = pretty_print_board (get_board game_update) in *)
 
             (* Move the piece that has the least adjacent moves possible *)
             let departure_coord =
@@ -142,44 +143,43 @@ let bot_SOAN (*(random : int -> int)*) : player_strategie =
 
             let flying_action =
                 let possible_flyings = get_all_free_positions game_update in
-                let sorted_flyings = List.map (fun d -> Flying (departure_coord, d)) possible_flyings |> sort_actions_by_priority in
-                let possible_mills =
-                  sorted_flyings |> actions_affect_mill game_update player
+                let sorted_flyings =
+                    List.map (fun d -> Flying (departure_coord, d)) possible_flyings |> sort_actions_by_priority
                 in
+                let possible_mills = sorted_flyings |> actions_affect_mill game_update player in
                 if not (List.is_empty possible_mills)
                 then possible_mills |> List.hd
                 else
                   let opponent = get_opponent game_update player.color in
-                  let enemy_possible_mills =
-                  sorted_flyings |> actions_affect_mill game_update opponent
-                  in
+                  let enemy_possible_mills = sorted_flyings |> actions_affect_mill game_update opponent in
                   if not (List.is_empty enemy_possible_mills)
                   then enemy_possible_mills |> List.hd
                   else sorted_flyings |> List.hd
-            in 
+            in
             (* Format.printf "Flying from ";
-            print_cord departure;
-            Format.printf " to ";
-            print_cord arrival;
-            Format.printf "@."; *)
+               print_cord departure;
+               Format.printf " to ";
+               print_cord arrival;
+               Format.printf "@."; *)
             flying_action
     in
 
     let strategie_remove (game_update : game_update) (player : player) : action =
-      (* Format.printf "ME Removing@."; *)
-      (* let () = pretty_print_board (get_board game_update) in *)
-
+        (* Format.printf "ME Removing@."; *)
+        (* let () = pretty_print_board (get_board game_update) in *)
         let removing_action =
             let opponent = get_opponent game_update player.color in
             let enemy_pieces_coord_list = pieces_coord_list game_update opponent in
-            let possible_enemy_mills =List.map (fun c -> Remove c) enemy_pieces_coord_list |> actions_affect_mill game_update opponent in 
+            let possible_enemy_mills =
+                List.map (fun c -> Remove c) enemy_pieces_coord_list |> actions_affect_mill game_update opponent
+            in
             if List.is_empty possible_enemy_mills
             then List.map (fun r -> Remove r) enemy_pieces_coord_list |> sort_actions_by_priority |> List.hd
             else possible_enemy_mills |> sort_actions_by_priority |> List.hd
         in
         (* Format.printf "Removing ";
-        print_cord to_remove;
-        Format.printf "@."; *)
+           print_cord to_remove;
+           Format.printf "@."; *)
         removing_action
     in
 

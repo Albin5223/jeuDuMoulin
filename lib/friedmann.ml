@@ -276,6 +276,3 @@ let smart_player : player_strategie =
             Remove (List.nth (get_opponent game_update player.color).bag i)
     in
     { strategie_play; strategie_remove }
-
-
-

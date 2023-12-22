@@ -50,31 +50,28 @@ let private_play game_update (player1 : player_strategie) (private_player1 : pla
 let arena (p1 : player_strategie) (p2 : player_strategie) (template : template) : end_game =
     (* recursive function that play a turn for each player *)
     let rec turn n (game_update : game_update) =
-      if n >= 1000 then
-        failwith "Game too long";
+        if n >= 1000 then failwith "Game too long";
         (* we update the phase of the players *)
-      try
-        let game_update = update_phase game_update in
-        (* if the player1 has lost, we return the game_update *)
-        if lost game_update (get_player_1 game_update)
-        then { game = game_update; winner = get_player_2 game_update; loser = get_player_1 game_update }
-        else
-          (* we play the turn for player1 *)
-          let newGU = private_play game_update p1 (get_player_1 game_update) (get_player_2 game_update) in
-          try
-            (* we update the phase of the players *)
-            let newGU = update_phase newGU in
-            (* if the player2 has lost, we return the game_update *)
-            if lost newGU (get_player_2 newGU)
-            then { game = newGU; winner = get_player_1 newGU; loser = get_player_2 newGU }
-            else
-              (* else, we play the turn for player2 *)
-              let newGU = private_play newGU p2 (get_player_2 newGU) (get_player_1 newGU) in
-              turn (n+1) newGU (* we play the next turn *)
-          with
-      | _ -> { game = game_update; winner = get_player_2 game_update; loser = get_player_1 game_update }
-      with
-      | _ -> { game = game_update; winner = get_player_1 game_update; loser = get_player_2 game_update }
+        try
+          let game_update = update_phase game_update in
+          (* if the player1 has lost, we return the game_update *)
+          if lost game_update (get_player_1 game_update)
+          then { game = game_update; winner = get_player_2 game_update; loser = get_player_1 game_update }
+          else
+            (* we play the turn for player1 *)
+            let newGU = private_play game_update p1 (get_player_1 game_update) (get_player_2 game_update) in
+            try
+              (* we update the phase of the players *)
+              let newGU = update_phase newGU in
+              (* if the player2 has lost, we return the game_update *)
+              if lost newGU (get_player_2 newGU)
+              then { game = newGU; winner = get_player_1 newGU; loser = get_player_2 newGU }
+              else
+                (* else, we play the turn for player2 *)
+                let newGU = private_play newGU p2 (get_player_2 newGU) (get_player_1 newGU) in
+                turn (n + 1) newGU (* we play the next turn *)
+            with _ -> { game = game_update; winner = get_player_2 game_update; loser = get_player_1 game_update }
+        with _ -> { game = game_update; winner = get_player_1 game_update; loser = get_player_2 game_update }
     in
     turn 0 (init_game_update template)
 
@@ -87,8 +84,8 @@ let player_random (random : int -> int) : player_strategie =
     let strategie_play (game_update : game_update) (player : player) : action =
         match player.phase with
         | Placing ->
-           (* Format.printf "RANDOM Placing@."; *)
-           (* let () = pretty_print_board (get_board game_update) in *)
+            (* Format.printf "RANDOM Placing@."; *)
+            (* let () = pretty_print_board (get_board game_update) in *)
             (* When the bot is in Placing phase, he chooses a random square where to place, and repeat that until he finds a correct position *)
             let rec choise_coord () =
                 let i = random (board_length (get_board game_update)) in
@@ -100,8 +97,8 @@ let player_random (random : int -> int) : player_strategie =
             let coord = choise_coord () in
             Placing coord
         | Moving ->
-           (* Format.printf "RANDOM Moving@."; 
-            let () = pretty_print_board (get_board game_update) in *)
+            (* Format.printf "RANDOM Moving@.";
+               let () = pretty_print_board (get_board game_update) in *)
             (* When the bot is in Moving phase, he chooses a random piece in his bag, and if the piece is not blocked, he moves it to a random direction, else, repeat the operation *)
             let rec choise_mouv () =
                 let i = random (List.length player.bag) in
@@ -116,8 +113,8 @@ let player_random (random : int -> int) : player_strategie =
             in
             choise_mouv ()
         | Flying ->
-           (* Format.printf "RANDOM Flying@.";
-            let () = pretty_print_board (get_board game_update) in *)
+            (* Format.printf "RANDOM Flying@.";
+               let () = pretty_print_board (get_board game_update) in *)
             (* When the bot is in Flying phase, he chooses a random square where to place, and repeat that until he finds a correct position, then chooses a random piece in his bag to place it *)
             let rec choise_coord () =
                 let i = random (board_length (get_board game_update)) in
@@ -133,8 +130,8 @@ let player_random (random : int -> int) : player_strategie =
     in
     (* The removing strategy is here *)
     let strategie_remove (game_update : game_update) (player : player) : action =
-      (* Format.printf "RANDOM Removing@.";
-        let () = pretty_print_board (get_board game_update) in *)
+        (* Format.printf "RANDOM Removing@.";
+           let () = pretty_print_board (get_board game_update) in *)
         let i = random (List.length (get_opponent game_update player.color).bag) in
         Remove (List.nth (get_opponent game_update player.color).bag i)
     in
@@ -144,21 +141,16 @@ let player_random2 _ =
     (* The placing/moving strategy is here *)
     let strategie_play _ player =
         match player.phase with
-        | Placing ->
-            Placing (0, 0)
-        | Moving ->
-          Moving ((0, 0), Up)
-        | Flying ->
-            Flying ((0,0), (1, 1))
+        | Placing -> Placing (0, 0)
+        | Moving -> Moving ((0, 0), Up)
+        | Flying -> Flying ((0, 0), (1, 1))
     in
     (* The removing strategy is here *)
-    let strategie_remove _ _ =
-        Remove (0, 0)
-    in
+    let strategie_remove _ _ = Remove (0, 0) in
     { strategie_play; strategie_remove }
 
 let rec read (s : string) : int =
-  let () = Format.printf "%s@." s in
+    let () = Format.printf "%s@." s in
     try read_int ()
     with Failure _ ->
       let () = print_endline "please enter an int" in
