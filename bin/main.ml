@@ -35,6 +35,7 @@ let players =
       wrap "Eljamal" Mill.Eljamal.player_ali;
       wrap "Guetteville" Mill.Guetteville.player_optimal_Nathan;
       wrap "Morel" Mill.Morel.ai_strategie;
+      wrap "Diallo" Mill.Diallo.player_amd;
     |]
 
 let score = Array.init (Array.length players) (fun _ -> 0)

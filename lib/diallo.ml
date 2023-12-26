@@ -87,8 +87,10 @@ let rec dir_align_pawn (game_update : game_update) list_dir coord_dep player =
         if coord_adj then Some Up_left else dir_align_pawn game_update tl coord_dep player
     | _ -> None
 
+let random = Random.int
+
 (* player_amd *)
-let player_amd (random : int -> int) : player_strategie =
+let player_amd : player_strategie =
     (* The placing/moving strategy is here *)
     let strategie_play (game_update : game_update) (player : player) : action =
         match player.phase with
