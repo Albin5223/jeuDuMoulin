@@ -9,7 +9,7 @@ authors: ["ESPANTET Nicolas, LEFORESTIER Meril, PARIS Albin, YAZICI Servan"]
 license: "LICENSE"
 doc: "https://url/to/documentation"
 depends: [
-  "ocaml" {>= "4.13"}
+  "ocaml" {>= "5.1"}
   "dune" {>= "3.10"}
   "alcotest"
   "qcheck"
